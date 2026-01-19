@@ -1,15 +1,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #0056D2;
+  --color-primary: #0056D2; /* Trust Blue */
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f3f4f6;
+  --color-secondary: #FFD100; /* Action Yellow */
   --color-secondary-foreground: #1f2937;
+  --color-surface: #ffffff;
+  --color-background: #f9fafb;
 }
 
 @layer base {
   body {
-    background-color: var(--color-gray-50);
+    background-color: var(--color-background);
     color: var(--color-gray-900);
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm;
+  }
+  .btn-secondary {
+    @apply px-6 py-3 bg-secondary text-secondary-foreground font-bold rounded-lg hover:bg-yellow-400 transition-colors shadow-sm;
+  }
+  .container-main {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 }

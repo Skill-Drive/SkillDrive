@@ -1,40 +1,76 @@
 import { Link } from 'react-router-dom';
-import { Menu, Car } from 'lucide-react';
+import { Menu, Car, UserCircle } from 'lucide-react';
+import { useState } from 'react';
 
 export const Navbar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <Link to="/" className="flex-shrink-0 flex items-center gap-2">
-              <Car className="h-8 w-8 text-primary" />
-              <span className="font-bold text-xl text-gray-900">Skill Drive</span>
+      <div className="container-main">
+        <div className="flex justify-between h-20 items-center">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link to="/" className="flex-shrink-0 flex items-center gap-2 group">
+              <div className="bg-primary p-2 rounded-lg group-hover:bg-blue-700 transition-colors">
+                <Car className="h-6 w-6 text-white" />
+              </div>
+              <span className="font-extrabold text-2xl text-gray-900 tracking-tight">
+                Skill<span className="text-primary">Drive</span>
+              </span>
             </Link>
           </div>
           
-          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-8">
-            <Link to="/search" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link to="/search" className="text-gray-600 hover:text-primary font-medium text-sm">
               Find an Instructor
             </Link>
-            <Link to="/teach" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+            <Link to="/teach" className="text-gray-600 hover:text-primary font-medium text-sm">
               Become an Instructor
             </Link>
-            <Link to="/dashboard" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+            <div className="h-6 w-px bg-gray-300"></div>
+            <Link to="/login" className="flex items-center gap-2 text-gray-600 hover:text-primary font-medium text-sm">
+              <UserCircle className="h-5 w-5" />
               Log In
             </Link>
-            <Link to="/dashboard" className="bg-primary text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium">
+            <Link to="/signup" className="btn-secondary py-2 px-4 text-sm">
               Sign Up
             </Link>
           </div>
 
-          <div className="flex items-center sm:hidden">
-            <button type="button" className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary">
+          {/* Mobile Menu Button */}
+          <div className="flex items-center md:hidden">
+            <button 
+              type="button" 
+              className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
               <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            <Link to="/search" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+              Find an Instructor
+            </Link>
+            <Link to="/teach" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+              Become an Instructor
+            </Link>
+            <Link to="/login" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+              Log In
+            </Link>
+            <Link to="/signup" className="block px-3 py-2 mt-4 text-center font-bold bg-secondary text-secondary-foreground rounded-md">
+              Sign Up
+            </Link>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

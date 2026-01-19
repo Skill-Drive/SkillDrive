@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Home } from './pages/Home';
@@ -5,8 +6,17 @@ import { SearchResults } from './pages/SearchResults';
 import { InstructorProfile } from './pages/InstructorProfile';
 import { Dashboard } from './pages/Dashboard';
 import { Checkout } from './pages/Checkout';
+import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
+import { useAuth } from './hooks/useAuth';
 
 function App() {
+  const { initialize } = useAuth();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
   return (
     <Router>
       <div className="min-h-screen flex flex-col bg-gray-50">
@@ -18,6 +28,8 @@ function App() {
             <Route path="/instructor/:id" element={<InstructorProfile />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
           </Routes>
         </main>
         <footer className="bg-white border-t border-gray-200 py-8">
