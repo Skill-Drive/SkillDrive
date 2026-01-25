@@ -16,18 +16,39 @@ export const BookingModal = ({ instructor, slot, onClose, onSuccess }: BookingMo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Sanitize input by removing potentially harmful characters
+  const sanitizeInput = (input: string): string => {
+    return input.replace(/[<>]/g, '').trim();
+  };
+
+  const validateAddress = (addr: string): string | null => {
+    const sanitized = sanitizeInput(addr);
+    if (sanitized.length < 5) return 'Address must be at least 5 characters long';
+    if (sanitized.length > 200) return 'Address is too long';
+    return null;
+  };
+
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
+    // Validate address
+    const validationError = validateAddress(address);
+    if (validationError) {
+      setError(validationError);
+      setLoading(false);
+      return;
+    }
+
     try {
+      const sanitizedAddress = sanitizeInput(address);
       await bookingService.createBooking({
         instructor_id: instructor.id,
         learner_id: 'current-user-id', // Mock user ID
         start_time: slot.toISOString(),
         end_time: new Date(slot.getTime() + 60 * 60 * 1000).toISOString(), // 1 hour duration
-        pickup_address: address,
+        pickup_address: sanitizedAddress,
         price: instructor.hourly_rate
       });
       onSuccess();
@@ -52,7 +73,7 @@ export const BookingModal = ({ instructor, slot, onClose, onSuccess }: BookingMo
         <form onSubmit={handleBooking} className="p-6">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-100">
-               <img src={instructor.vehicle.image_url} alt="" className="w-full h-full object-cover" />
+              <img src={instructor.vehicle.image_url} alt="" className="w-full h-full object-cover" />
             </div>
             <div>
               <p className="font-bold text-gray-900">{instructor.full_name}</p>
@@ -62,15 +83,15 @@ export const BookingModal = ({ instructor, slot, onClose, onSuccess }: BookingMo
 
           <div className="space-y-4">
             <div className="bg-blue-50 p-4 rounded-lg flex justify-between items-center">
-               <div>
-                 <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">Date & Time</p>
-                 <p className="font-medium text-blue-900">{format(slot, 'EEEE, MMM do')}</p>
-                 <p className="text-lg font-bold text-primary">{format(slot, 'h:mm a')}</p>
-               </div>
-               <div className="text-right">
-                 <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">Price</p>
-                 <p className="text-2xl font-bold text-gray-900">${instructor.hourly_rate}</p>
-               </div>
+              <div>
+                <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">Date & Time</p>
+                <p className="font-medium text-blue-900">{format(slot, 'EEEE, MMM do')}</p>
+                <p className="text-lg font-bold text-primary">{format(slot, 'h:mm a')}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">Price</p>
+                <p className="text-2xl font-bold text-gray-900">${instructor.hourly_rate}</p>
+              </div>
             </div>
 
             <div>
@@ -80,6 +101,8 @@ export const BookingModal = ({ instructor, slot, onClose, onSuccess }: BookingMo
                 <input
                   type="text"
                   required
+                  minLength={5}
+                  maxLength={200}
                   placeholder="Enter your pickup address"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
                   value={address}
