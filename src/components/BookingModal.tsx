@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { X, MapPin, Loader2 } from 'lucide-react';
 import type { InstructorProfile } from '../types';
 import { bookingService } from '../services/bookingService';
+import { useAuth } from '../hooks/useAuth';
 
 interface BookingModalProps {
   instructor: InstructorProfile;
@@ -12,6 +14,8 @@ interface BookingModalProps {
 }
 
 export const BookingModal = ({ instructor, slot, onClose, onSuccess }: BookingModalProps) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,18 +45,28 @@ export const BookingModal = ({ instructor, slot, onClose, onSuccess }: BookingMo
       return;
     }
 
+    if (!user) {
+      setError('You must be logged in to book a lesson.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const sanitizedAddress = sanitizeInput(address);
-      await bookingService.createBooking({
+      const booking = await bookingService.createBooking({
         instructor_id: instructor.id,
-        learner_id: 'current-user-id', // Mock user ID
+        learner_id: user.id,
         start_time: slot.toISOString(),
-        end_time: new Date(slot.getTime() + 60 * 60 * 1000).toISOString(), // 1 hour duration
+        end_time: new Date(slot.getTime() + 60 * 60 * 1000).toISOString(),
         pickup_address: sanitizedAddress,
-        price: instructor.hourly_rate
+        price: instructor.hourly_rate,
       });
       onSuccess();
-      alert('Booking Confirmed! You would now be redirected to payment.');
+      navigate(
+        `/checkout?bookingId=${booking.id}&amount=${instructor.hourly_rate}` +
+        `&instructor=${encodeURIComponent(instructor.full_name)}` +
+        `&date=${encodeURIComponent(format(slot, 'EEE, MMM do · h:mm a'))}`
+      );
     } catch (err: any) {
       setError(err.message || 'Failed to book slot');
     } finally {

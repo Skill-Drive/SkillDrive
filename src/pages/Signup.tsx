@@ -31,9 +31,7 @@ export const Signup = () => {
 
       if (signUpError) throw signUpError;
 
-      // Note: In a real app, you'd trigger a trigger to create a profile in the 'profiles' table here
-      // via Supabase Database Webhooks or Edge Functions.
-      
+      // Profile row is auto-created by the handle_new_user DB trigger.
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Failed to sign up');

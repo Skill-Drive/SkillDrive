@@ -2,17 +2,20 @@ import { useEffect, useState } from 'react';
 import { format, parseISO, isFuture } from 'date-fns';
 import { Calendar, Clock, MapPin, CheckCircle, XCircle } from 'lucide-react';
 import { bookingService } from '../services/bookingService';
+import { useAuth } from '../hooks/useAuth';
 import type { Booking, InstructorProfile } from '../types';
 
 export const Dashboard = () => {
+  const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [instructorCache, setInstructorCache] = useState<Record<string, InstructorProfile>>({});
 
   const fetchBookings = async () => {
+    if (!user) return;
     try {
       setLoading(true);
-      const data = await bookingService.getBookings('current-user-id');
+      const data = await bookingService.getBookings(user.id);
       // Sort by date: upcoming first
       const sorted = data.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
       setBookings(sorted);
@@ -36,7 +39,7 @@ export const Dashboard = () => {
 
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [user]);
 
   const handleCancel = async (bookingId: string) => {
     if (window.confirm('Are you sure you want to cancel this lesson?')) {
