@@ -25,11 +25,16 @@ export interface Booking {
   id: string;
   instructor_id: string;
   learner_id: string;
-  start_time: string; // ISO string
-  end_time: string; // ISO string
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-  pickup_address: string;
+  start_time: string;
+  end_time: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   price: number;
+  pickup_address: string;
+  created_at: string;
+  other_party?: {
+    full_name: string;
+  };
+  user_is_learner?: boolean;
 }
 
 export interface AvailabilitySlot {

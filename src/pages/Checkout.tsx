@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CreditCard, Lock, CheckCircle, ArrowLeft } from 'lucide-react';
+import { bookingService } from '../services/bookingService';
 
 export const Checkout = () => {
   const [searchParams] = useSearchParams();
@@ -31,20 +32,25 @@ export const Checkout = () => {
     return digits;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setProcessing(true);
 
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Simulate payment processing delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-    setProcessing(false);
-    setSuccess(true);
+      // Confirm the pending booking in Supabase
+      const bookingId = searchParams.get('bookingId');
+      if (bookingId) {
+        await bookingService.confirmBooking(bookingId);
+      }
 
-    // Redirect to dashboard after success
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 2500);
+      setSuccess(true);
+      setTimeout(() => navigate('/dashboard'), 2500);
+    } catch {
+      setProcessing(false);
+    }
   };
 
   if (success) {

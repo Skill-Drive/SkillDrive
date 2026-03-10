@@ -31,9 +31,7 @@ export const Signup = () => {
 
       if (signUpError) throw signUpError;
 
-      // Note: In a real app, you'd trigger a trigger to create a profile in the 'profiles' table here
-      // via Supabase Database Webhooks or Edge Functions.
-
+      // Profile row is auto-created by the handle_new_user DB trigger.
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Failed to sign up');
@@ -64,8 +62,8 @@ export const Signup = () => {
               type="button"
               onClick={() => setRole('learner')}
               className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all ${role === 'learner'
-                  ? 'border-primary bg-blue-50 text-primary ring-1 ring-primary'
-                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                ? 'border-primary bg-blue-50 text-primary ring-1 ring-primary'
+                : 'border-gray-200 hover:border-gray-300 text-gray-600'
                 }`}
             >
               <User className="h-6 w-6" />
@@ -75,8 +73,8 @@ export const Signup = () => {
               type="button"
               onClick={() => setRole('instructor')}
               className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all ${role === 'instructor'
-                  ? 'border-primary bg-blue-50 text-primary ring-1 ring-primary'
-                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                ? 'border-primary bg-blue-50 text-primary ring-1 ring-primary'
+                : 'border-gray-200 hover:border-gray-300 text-gray-600'
                 }`}
             >
               <GraduationCap className="h-6 w-6" />

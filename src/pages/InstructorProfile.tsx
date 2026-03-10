@@ -10,7 +10,6 @@ import 'react-day-picker/dist/style.css';
 
 export const InstructorProfile = () => {
   const { id } = useParams<{ id: string }>();
-  // const navigate = useNavigate(); // Removed unused
   const [instructor, setInstructor] = useState<IInstructorProfile | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [availableSlots, setAvailableSlots] = useState<Date[]>([]);
