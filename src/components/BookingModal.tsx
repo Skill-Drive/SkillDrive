@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
 import { X, MapPin, Loader2 } from 'lucide-react';
 import type { InstructorProfile } from '../types';
-<<<<<<< HEAD
 import { supabase } from '../services/supabase';
-=======
-import { bookingService } from '../services/bookingService';
 import { useAuth } from '../hooks/useAuth';
->>>>>>> a34140ab77d1f7430e7c8e9416fe8ef22053e941
 
 interface BookingModalProps {
   instructor: InstructorProfile;
@@ -16,13 +11,8 @@ interface BookingModalProps {
   onClose: () => void;
 }
 
-<<<<<<< HEAD
 export const BookingModal = ({ instructor, slot, onClose }: BookingModalProps) => {
-=======
-export const BookingModal = ({ instructor, slot, onClose, onSuccess }: BookingModalProps) => {
   const { user } = useAuth();
-  const navigate = useNavigate();
->>>>>>> a34140ab77d1f7430e7c8e9416fe8ef22053e941
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,8 +50,6 @@ export const BookingModal = ({ instructor, slot, onClose, onSuccess }: BookingMo
 
     try {
       const sanitizedAddress = sanitizeInput(address);
-<<<<<<< HEAD
-
       const { data, error: functionError } = await supabase.functions.invoke('create-checkout-session', {
         body: {
           instructor_id: instructor.id,
@@ -78,22 +66,6 @@ export const BookingModal = ({ instructor, slot, onClose, onSuccess }: BookingMo
       if (data?.url) {
         window.location.href = data.url;
       }
-=======
-      const booking = await bookingService.createBooking({
-        instructor_id: instructor.id,
-        learner_id: user.id,
-        start_time: slot.toISOString(),
-        end_time: new Date(slot.getTime() + 60 * 60 * 1000).toISOString(),
-        pickup_address: sanitizedAddress,
-        price: instructor.hourly_rate,
-      });
-      onSuccess();
-      navigate(
-        `/checkout?bookingId=${booking.id}&amount=${instructor.hourly_rate}` +
-        `&instructor=${encodeURIComponent(instructor.full_name)}` +
-        `&date=${encodeURIComponent(format(slot, 'EEE, MMM do · h:mm a'))}`
-      );
->>>>>>> a34140ab77d1f7430e7c8e9416fe8ef22053e941
     } catch (err: any) {
       setError(err.message || 'Failed to initialize checkout');
       setLoading(false);

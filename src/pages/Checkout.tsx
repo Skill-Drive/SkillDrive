@@ -1,16 +1,16 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CreditCard, Lock, CheckCircle, ArrowLeft } from 'lucide-react';
-import { bookingService } from '../services/bookingService';
+
 
 export const Checkout = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+
   const amount = searchParams.get('amount') || '75';
   const instructorName = searchParams.get('instructor') || 'Instructor';
   const bookingDate = searchParams.get('date') || 'Not specified';
-  
+
   const [cardNumber, setCardNumber] = useState('');
   const [cardName, setCardName] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
@@ -41,9 +41,10 @@ export const Checkout = () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Confirm the pending booking in Supabase
+      // This is now handled by the Stripe Webhook automatically
       const bookingId = searchParams.get('bookingId');
       if (bookingId) {
-        await bookingService.confirmBooking(bookingId);
+        console.log("Mock confirming booking locally.");
       }
 
       setSuccess(true);
@@ -190,7 +191,7 @@ export const Checkout = () => {
           <div className="lg:col-span-1">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 sticky top-4">
               <h3 className="font-bold text-lg text-gray-900 mb-4">Order Summary</h3>
-              
+
               <div className="space-y-3 pb-4 border-b border-gray-200">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Instructor</span>
