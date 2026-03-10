@@ -19,6 +19,45 @@ export const Dashboard = () => {
   const [postcode, setPostcode] = useState(profile?.learner_data?.[0]?.postcode || '');
   const [licenseFrontUrl, setLicenseFrontUrl] = useState(profile?.learner_data?.[0]?.license_front_url || '');
   const [licenseBackUrl, setLicenseBackUrl] = useState(profile?.learner_data?.[0]?.license_back_url || '');
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    try {
+      setSaving(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      setAvatarUrl(publicUrl);
+
+      // Update profiles table
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+      await initialize();
+    } catch (err: any) {
+      alert('Avatar upload failed: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
 
   const fetchBookings = async () => {
     if (!user) return;
@@ -42,6 +81,7 @@ export const Dashboard = () => {
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || '');
+      setAvatarUrl(profile.avatar_url || '');
       const ld = profile.learner_data?.[0] || profile.learner_data;
       if (ld) {
         setSuburb(ld.suburb || '');
@@ -234,6 +274,34 @@ export const Dashboard = () => {
                   <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                     Personal Details
                   </h2>
+
+                  {/* Avatar Section */}
+                  <div className="flex flex-col items-center mb-10">
+                    <div className="relative group">
+                      <div className="h-32 w-32 rounded-full overflow-hidden bg-gray-100 border-4 border-white shadow-md">
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center bg-primary/10">
+                            <span className="text-4xl font-black text-primary">
+                              {fullName.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <label className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full cursor-pointer shadow-lg hover:bg-primary/90 transition-all transform hover:scale-110">
+                        <Camera className="h-5 w-5" />
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                        />
+                      </label>
+                    </div>
+                    <p className="text-sm font-medium text-gray-500 mt-4">Profile Photo</p>
+                  </div>
+
                   <form onSubmit={handleSaveProfile} className="space-y-6">
                     <div className="grid grid-cols-1 gap-6">
                       <div>
