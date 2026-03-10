@@ -44,7 +44,7 @@ export const Navbar = () => {
               <>
                 <Link to="/dashboard" className="flex items-center gap-2 text-gray-600 hover:text-primary font-medium text-sm">
                   <UserCircle className="h-5 w-5" />
-                  Dashboard
+                  My Profile
                 </Link>
                 <button
                   onClick={handleSignOut}
@@ -93,7 +93,7 @@ export const Navbar = () => {
             {user ? (
               <>
                 <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-                  Dashboard
+                  My Profile
                 </Link>
                 <button
                   onClick={() => {

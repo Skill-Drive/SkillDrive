@@ -30,7 +30,7 @@ serve(async (req) => {
 
         const { data: profile, error: profileError } = await supabaseClient
             .from("profiles")
-            .select("*, instructor_profiles(*)")
+            .select("*, instructor_profiles(*), learner_data(*)")
             .eq("id", user.id)
             .single();
 
