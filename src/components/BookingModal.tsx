@@ -2,16 +2,15 @@ import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { X, MapPin, Loader2 } from 'lucide-react';
 import type { InstructorProfile } from '../types';
-import { bookingService } from '../services/bookingService';
+import { supabase } from '../services/supabase';
 
 interface BookingModalProps {
   instructor: InstructorProfile;
   slot: Date;
   onClose: () => void;
-  onSuccess: () => void;
 }
 
-export const BookingModal = ({ instructor, slot, onClose, onSuccess }: BookingModalProps) => {
+export const BookingModal = ({ instructor, slot, onClose }: BookingModalProps) => {
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,19 +42,25 @@ export const BookingModal = ({ instructor, slot, onClose, onSuccess }: BookingMo
 
     try {
       const sanitizedAddress = sanitizeInput(address);
-      await bookingService.createBooking({
-        instructor_id: instructor.id,
-        learner_id: 'current-user-id', // Mock user ID
-        start_time: slot.toISOString(),
-        end_time: new Date(slot.getTime() + 60 * 60 * 1000).toISOString(), // 1 hour duration
-        pickup_address: sanitizedAddress,
-        price: instructor.hourly_rate
+
+      const { data, error: functionError } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          instructor_id: instructor.id,
+          start_time: slot.toISOString(),
+          end_time: new Date(slot.getTime() + 60 * 60 * 1000).toISOString(), // 1 hour duration
+          pickup_address: sanitizedAddress,
+          price: instructor.hourly_rate
+        }
       });
-      onSuccess();
-      alert('Booking Confirmed! You would now be redirected to payment.');
+
+      if (functionError) throw functionError;
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to book slot');
-    } finally {
+      setError(err.message || 'Failed to initialize checkout');
       setLoading(false);
     }
   };

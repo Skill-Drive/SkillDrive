@@ -8,6 +8,10 @@ import { Dashboard } from './pages/Dashboard';
 import { Checkout } from './pages/Checkout';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
+import { SetupPassword } from './pages/SetupPassword';
+import { InstructorVerification } from './pages/InstructorVerification';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAuth } from './hooks/useAuth';
 
 function App() {
@@ -26,10 +30,13 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/instructor/:id" element={<InstructorProfile />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/verify" element={<ProtectedRoute><InstructorVerification /></ProtectedRoute>} />
+            <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/setup-password" element={<SetupPassword />} />
           </Routes>
         </main>
         <footer className="bg-white border-t border-gray-200 py-8">

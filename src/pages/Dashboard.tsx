@@ -1,32 +1,22 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { format, parseISO, isFuture } from 'date-fns';
 import { Calendar, Clock, MapPin, CheckCircle, XCircle } from 'lucide-react';
 import { bookingService } from '../services/bookingService';
-import type { Booking, InstructorProfile } from '../types';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../services/supabase';
 
 export const Dashboard = () => {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [instructorCache, setInstructorCache] = useState<Record<string, InstructorProfile>>({});
+  const { profile } = useAuth(); // get role
 
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const data = await bookingService.getBookings('current-user-id');
+      const data = await bookingService.getBookings();
       // Sort by date: upcoming first
       const sorted = data.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
       setBookings(sorted);
-
-      // Fetch instructor details for unique instructors
-      const instructorIds = [...new Set(data.map(b => b.instructor_id))];
-      const profiles: Record<string, InstructorProfile> = {};
-      for (const id of instructorIds) {
-        if (!instructorCache[id]) {
-          const profile = await bookingService.getInstructor(id);
-          if (profile) profiles[id] = profile;
-        }
-      }
-      setInstructorCache(prev => ({ ...prev, ...profiles }));
     } catch (error) {
       console.error("Failed to fetch bookings", error);
     } finally {
@@ -50,15 +40,15 @@ export const Dashboard = () => {
     }
   };
 
-  const StatusBadge = ({ status }: { status: Booking['status'] }) => {
-    const styles = {
+  const StatusBadge = ({ status }: { status: string }) => {
+    const styles: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
       confirmed: 'bg-green-100 text-green-800',
       completed: 'bg-gray-100 text-gray-800',
       cancelled: 'bg-red-100 text-red-800',
     };
 
-    const icon = {
+    const icon: Record<string, React.JSX.Element> = {
       pending: <Clock className="w-3 h-3" />,
       confirmed: <CheckCircle className="w-3 h-3" />,
       completed: <CheckCircle className="w-3 h-3" />,
@@ -78,7 +68,7 @@ export const Dashboard = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading your lessons...</p>
+          <p className="text-gray-500">Loading your schedule...</p>
         </div>
       </div>
     );
@@ -91,35 +81,70 @@ export const Dashboard = () => {
     <div className="min-h-screen bg-gray-50 pb-12">
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="container-main py-8">
-          <h1 className="text-2xl font-bold text-gray-900">My Dashboard</h1>
-          <p className="text-gray-500 mt-1">Manage your driving lessons and schedule.</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {profile?.role === 'instructor' ? 'Instructor Dashboard' : 'My Dashboard'}
+          </h1>
+          <p className="text-gray-500 mt-1">
+            {profile?.role === 'instructor' ? 'Manage your upcoming student lessons.' : 'Manage your driving lessons and schedule.'}
+          </p>
         </div>
       </div>
 
+      {profile?.role === 'instructor' && !profile?.instructor_profiles?.stripe_onboarding_complete && (
+        <div className="container-main mt-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-medium text-blue-900">Set up Payments to Receive Bookings</h3>
+              <p className="text-sm text-blue-700 mt-1">You need to complete your Stripe Connect Express onboarding to receive payouts for lessons.</p>
+            </div>
+            <button
+              onClick={async () => {
+                try {
+                  const { data, error } = await supabase.functions.invoke('create-connect-account');
+                  if (error) throw error;
+                  if (data?.url) window.location.href = data.url;
+                } catch (err: any) {
+                  alert(err.message || 'Failed to initialize Stripe Onboarding');
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md text-sm whitespace-nowrap shadow-sm"
+            >
+              Set up Payments
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="container-main mt-8">
         <div className="grid gap-8">
-          
+
           {/* Upcoming Lessons */}
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
               Upcoming Lessons
             </h2>
-            
+
             {upcomingBookings.length === 0 ? (
               <div className="bg-white p-8 rounded-xl border border-dashed border-gray-300 text-center">
                 <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Calendar className="h-6 w-6 text-gray-400" />
                 </div>
                 <p className="text-gray-600 mb-4">You have no upcoming lessons scheduled.</p>
-                <a href="/search" className="btn-primary inline-flex items-center gap-2">
-                  Book a Lesson
-                </a>
+                {profile?.role !== 'instructor' && (
+                  <a href="/search" className="btn-primary inline-flex items-center gap-2">
+                    Book a Lesson
+                  </a>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
                 {upcomingBookings.map(booking => {
-                  const instructor = instructorCache[booking.instructor_id];
+                  const otherPartyName = booking.other_party?.full_name || 'Unknown User';
+                  // Use the helper flag from the Edge Function
+                  const isLearner = booking.user_is_learner;
+                  const title = isLearner ? `Lesson with ${otherPartyName}` : `Student: ${otherPartyName}`;
+
                   return (
                     <div key={booking.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6">
                       {/* Date Box */}
@@ -133,11 +158,11 @@ export const Dashboard = () => {
                       <div className="flex-grow">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-bold text-lg text-gray-900">
-                             Lesson with {instructor ? instructor.full_name : 'Instructor'}
+                            {title}
                           </h3>
                           <StatusBadge status={booking.status} />
                         </div>
-                        
+
                         <div className="space-y-2 text-gray-600">
                           <div className="flex items-center gap-2 text-sm">
                             <Clock className="h-4 w-4 text-gray-400" />
@@ -150,14 +175,11 @@ export const Dashboard = () => {
                         </div>
 
                         <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end gap-3">
-                          <button 
+                          <button
                             onClick={() => handleCancel(booking.id)}
                             className="text-sm text-red-600 hover:text-red-700 font-medium px-3 py-1.5 hover:bg-red-50 rounded-md transition-colors"
                           >
                             Cancel Lesson
-                          </button>
-                          <button className="btn-secondary py-1.5 px-4 text-sm">
-                            Reschedule
                           </button>
                         </div>
                       </div>
@@ -180,11 +202,11 @@ export const Dashboard = () => {
                   <div key={booking.id} className="bg-white p-4 rounded-lg border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-4">
                       <div className="text-gray-500 font-medium text-sm">
-                         {format(parseISO(booking.start_time), 'MMM d, yyyy')}
+                        {format(parseISO(booking.start_time), 'MMM d, yyyy')}
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">Driving Lesson</p>
-                        <p className="text-sm text-gray-500">{booking.pickup_address}</p>
+                        <p className="text-sm text-gray-500">{booking.pickup_address} • {booking.other_party?.full_name}</p>
                       </div>
                     </div>
                     <StatusBadge status={booking.status} />

@@ -57,7 +57,7 @@ export const InstructorProfile = () => {
               <div className="flex items-center gap-4 mt-2 text-gray-600">
                 <span className="flex items-center gap-1">
                   <Star className="h-5 w-5 text-secondary fill-secondary" />
-                  <span className="font-bold text-gray-900">{instructor.rating}</span> 
+                  <span className="font-bold text-gray-900">{instructor.rating}</span>
                   ({instructor.review_count} reviews)
                 </span>
                 <span className="flex items-center gap-1">
@@ -81,7 +81,7 @@ export const InstructorProfile = () => {
 
       <div className="container-main mt-8">
         <div className="grid lg:grid-cols-3 gap-8">
-          
+
           {/* Left Column: Details */}
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -120,41 +120,41 @@ export const InstructorProfile = () => {
                 <CalendarIcon className="h-5 w-5 text-primary" />
                 Select a Time
               </h2>
-              
+
               <div className="flex justify-center mb-4">
-                 <DayPicker
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    disabled={{ before: new Date() }}
-                    modifiersClassNames={{
-                      selected: 'bg-primary text-white font-bold rounded-full',
-                      today: 'text-primary font-bold'
-                    }}
-                    footer={
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <p className="text-sm text-gray-500 mb-2 font-medium">Available Slots for {selectedDate ? format(selectedDate, 'MMM do') : '...'}</p>
-                        <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
-                          {availableSlots.length > 0 ? (
-                            availableSlots.map(slot => (
-                              <button
-                                key={slot.toISOString()}
-                                onClick={() => {
-                                  setSelectedSlot(slot);
-                                  setIsModalOpen(true);
-                                }}
-                                className="px-3 py-2 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-primary hover:text-white transition-colors text-center font-medium"
-                              >
-                                {format(slot, 'h:mm a')}
-                              </button>
-                            ))
-                          ) : (
-                            <p className="col-span-2 text-center text-gray-400 text-sm py-2">No slots available</p>
-                          )}
-                        </div>
+                <DayPicker
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={{ before: new Date() }}
+                  modifiersClassNames={{
+                    selected: 'bg-primary text-white font-bold rounded-full',
+                    today: 'text-primary font-bold'
+                  }}
+                  footer={
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <p className="text-sm text-gray-500 mb-2 font-medium">Available Slots for {selectedDate ? format(selectedDate, 'MMM do') : '...'}</p>
+                      <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+                        {availableSlots.length > 0 ? (
+                          availableSlots.map(slot => (
+                            <button
+                              key={slot.toISOString()}
+                              onClick={() => {
+                                setSelectedSlot(slot);
+                                setIsModalOpen(true);
+                              }}
+                              className="px-3 py-2 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-primary hover:text-white transition-colors text-center font-medium"
+                            >
+                              {format(slot, 'h:mm a')}
+                            </button>
+                          ))
+                        ) : (
+                          <p className="col-span-2 text-center text-gray-400 text-sm py-2">No slots available</p>
+                        )}
                       </div>
-                    }
-                  />
+                    </div>
+                  }
+                />
               </div>
             </div>
           </div>
@@ -167,13 +167,6 @@ export const InstructorProfile = () => {
           instructor={instructor}
           slot={selectedSlot}
           onClose={() => setIsModalOpen(false)}
-          onSuccess={() => {
-             setIsModalOpen(false);
-             // Refresh slots
-             if (selectedDate) {
-               bookingService.getAvailableSlots(instructor.id, selectedDate).then(setAvailableSlots);
-             }
-          }}
         />
       )}
     </div>
