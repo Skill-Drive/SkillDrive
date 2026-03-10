@@ -12,6 +12,7 @@ export interface Instructor {
   price: number;
   image: string;
   nextAvailable: string;
+  suburbs_covered?: string[];
 }
 
 interface InstructorCardProps {
@@ -23,8 +24,8 @@ export const InstructorCard = ({ instructor }: InstructorCardProps) => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col md:flex-row">
       {/* Image Section */}
       <div className="md:w-64 h-48 md:h-auto relative bg-gray-100 flex-shrink-0">
-        <img 
-          src={instructor.image} 
+        <img
+          src={instructor.image}
           alt={instructor.name}
           className="w-full h-full object-cover"
         />
@@ -63,6 +64,28 @@ export const InstructorCard = ({ instructor }: InstructorCardProps) => {
               Next: {instructor.nextAvailable}
             </div>
           </div>
+
+          {/* Suburbs Covered */}
+          {instructor.suburbs_covered && instructor.suburbs_covered.length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Service Areas</p>
+              <div className="flex flex-wrap gap-1.5">
+                {instructor.suburbs_covered.slice(0, 4).map((suburb, index) => (
+                  <span key={index} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                    {suburb}
+                  </span>
+                ))}
+                {instructor.suburbs_covered.length > 4 && (
+                  <Link
+                    to={`/instructor/${instructor.id}`}
+                    className="text-xs text-primary font-bold hover:underline py-0.5"
+                  >
+                    + {instructor.suburbs_covered.length - 4} more
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-6 flex items-center justify-between pt-4 border-t border-gray-100">
@@ -70,7 +93,7 @@ export const InstructorCard = ({ instructor }: InstructorCardProps) => {
             <span className="text-2xl font-bold text-gray-900">${instructor.price}</span>
             <span className="text-gray-500 text-sm">/hr</span>
           </div>
-          <Link 
+          <Link
             to={`/instructor/${instructor.id}`}
             className="btn-primary py-2 px-6 text-sm"
           >

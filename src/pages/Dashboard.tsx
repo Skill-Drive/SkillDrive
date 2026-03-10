@@ -20,6 +20,8 @@ export const Dashboard = () => {
   const [licenseFrontUrl, setLicenseFrontUrl] = useState(profile?.learner_data?.[0]?.license_front_url || '');
   const [licenseBackUrl, setLicenseBackUrl] = useState(profile?.learner_data?.[0]?.license_back_url || '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
+  const [suburbsCovered, setSuburbsCovered] = useState<string[]>(profile?.instructor_profiles?.[0]?.suburbs_covered || []);
+  const [newSuburb, setNewSuburb] = useState('');
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -82,6 +84,7 @@ export const Dashboard = () => {
     if (profile) {
       setFullName(profile.full_name || '');
       setAvatarUrl(profile.avatar_url || '');
+      setSuburbsCovered(profile.instructor_profiles?.[0]?.suburbs_covered || []);
       const ld = profile.learner_data?.[0] || profile.learner_data;
       if (ld) {
         setSuburb(ld.suburb || '');
@@ -162,6 +165,18 @@ export const Dashboard = () => {
         .eq('id', user.id);
 
       if (profileError) throw profileError;
+
+      // Update instructor_profiles table
+      if (isInstructor) {
+        const { error: instructorError } = await supabase
+          .from('instructor_profiles')
+          .update({
+            suburbs_covered: suburbsCovered
+          })
+          .eq('id', user.id);
+
+        if (instructorError) throw instructorError;
+      }
 
       // Update learner_data table
       if (profile?.role === 'learner') {
@@ -350,6 +365,57 @@ export const Dashboard = () => {
                               placeholder="3000"
                             />
                           </div>
+                        </div>
+                      )}
+
+                      {isInstructor && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Suburbs Covered (Service Areas)</label>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {suburbsCovered.map((s, idx) => (
+                              <span key={idx} className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-bold animate-in fade-in zoom-in duration-200">
+                                {s}
+                                <button
+                                  type="button"
+                                  onClick={() => setSuburbsCovered(prev => prev.filter((_, i) => i !== idx))}
+                                  className="hover:text-red-500 transition-colors"
+                                >
+                                  <XCircle className="h-3.5 w-3.5" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={newSuburb}
+                              onChange={(e) => setNewSuburb(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  if (newSuburb.trim()) {
+                                    setSuburbsCovered(prev => [...prev, newSuburb.trim()]);
+                                    setNewSuburb('');
+                                  }
+                                }
+                              }}
+                              className="flex-grow border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-primary focus:border-primary"
+                              placeholder="Add a suburb..."
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (newSuburb.trim()) {
+                                  setSuburbsCovered(prev => [...prev, newSuburb.trim()]);
+                                  setNewSuburb('');
+                                }
+                              }}
+                              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 rounded-lg transition-colors border border-gray-200"
+                            >
+                              Add
+                            </button>
+                          </div>
+                          <p className="mt-2 text-xs text-gray-400">List the areas where you provide driving lessons.</p>
                         </div>
                       )}
                     </div>
