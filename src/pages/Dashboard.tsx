@@ -165,7 +165,10 @@ export const Dashboard = () => {
       // Update profiles table
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ full_name: fullName })
+        .update({
+          full_name: fullName,
+          avatar_url: avatarUrl
+        })
         .eq('id', user.id);
 
       if (profileError) throw profileError;

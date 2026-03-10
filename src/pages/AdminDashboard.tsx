@@ -6,7 +6,6 @@ import {
     Calendar,
     TrendingUp,
     Search,
-    MoreVertical,
     Mail,
     Phone,
     ArrowRight,
@@ -225,9 +224,28 @@ export const AdminDashboard = () => {
                                                 {format(new Date(u.created_at), 'MMM d, yyyy')}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button className="p-2 text-gray-400 hover:text-gray-900 transition-colors">
-                                                    <MoreVertical className="h-4 w-4" />
-                                                </button>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <select
+                                                        value={u.role}
+                                                        onChange={(e) => handleAction('update-user-role', { userId: u.id, newRole: e.target.value })}
+                                                        className="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                                    >
+                                                        <option value="learner">Learner</option>
+                                                        <option value="instructor">Instructor</option>
+                                                        <option value="admin">Admin</option>
+                                                    </select>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (window.confirm(`Are you sure you want to delete ${u.full_name}? This action is permanent.`)) {
+                                                                handleAction('delete-user', { userIdToDelete: u.id });
+                                                            }
+                                                        }}
+                                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                        title="Delete User"
+                                                    >
+                                                        <ShieldAlert className="h-4 w-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

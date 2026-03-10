@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -13,9 +13,10 @@ serve(async (req) => {
 
     try {
         const supabaseClient = createClient(
-            Deno.env.get("SUPABASE_URL") ?? "",
-            Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-        );
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', // Use service role for internal profile fetching
+            { auth: { autoRefreshToken: false, persistSession: false } }
+        )
 
         const authHeader = req.headers.get("Authorization")!;
         if (!authHeader) throw new Error("Missing Authorization header");
@@ -30,7 +31,11 @@ serve(async (req) => {
 
         const { data: profile, error: profileError } = await supabaseClient
             .from("profiles")
-            .select("*, instructor_profiles(*), learner_data(*)")
+            .select(`
+                *,
+                instructor_profiles(*),
+                learner_data(*)
+            `)
             .eq("id", user.id)
             .single();
 

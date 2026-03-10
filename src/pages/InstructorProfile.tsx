@@ -48,8 +48,12 @@ export const InstructorProfile = () => {
       <div className="bg-white border-b border-gray-200">
         <div className="container-main py-8">
           <div className="flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg flex-shrink-0">
-              <img src={instructor.vehicle.image_url} alt={instructor.full_name} className="w-full h-full object-cover" />
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg flex-shrink-0 bg-gray-100">
+              <img
+                src={instructor.avatar_url || instructor.vehicle.image_url || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80'}
+                alt={instructor.full_name}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="flex-grow">
               <h1 className="text-3xl font-bold text-gray-900">{instructor.full_name}</h1>
