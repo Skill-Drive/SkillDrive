@@ -21,6 +21,8 @@ export const Dashboard = () => {
   const [licenseBackUrl, setLicenseBackUrl] = useState(profile?.learner_data?.[0]?.license_back_url || '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
   const [suburbsCovered, setSuburbsCovered] = useState<string[]>(profile?.instructor_profiles?.[0]?.suburbs_covered || []);
+  const [transmission, setTransmission] = useState<'Auto' | 'Manual'>(profile?.instructor_profiles?.[0]?.vehicle_transmission || 'Auto');
+  const [hourlyRate, setHourlyRate] = useState<number>(profile?.instructor_profiles?.[0]?.hourly_rate || 75);
   const [newSuburb, setNewSuburb] = useState('');
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,6 +87,8 @@ export const Dashboard = () => {
       setFullName(profile.full_name || '');
       setAvatarUrl(profile.avatar_url || '');
       setSuburbsCovered(profile.instructor_profiles?.[0]?.suburbs_covered || []);
+      setTransmission(profile.instructor_profiles?.[0]?.vehicle_transmission || 'Auto');
+      setHourlyRate(profile.instructor_profiles?.[0]?.hourly_rate || 75);
       const ld = profile.learner_data?.[0] || profile.learner_data;
       if (ld) {
         setSuburb(ld.suburb || '');
@@ -171,7 +175,9 @@ export const Dashboard = () => {
         const { error: instructorError } = await supabase
           .from('instructor_profiles')
           .update({
-            suburbs_covered: suburbsCovered
+            suburbs_covered: suburbsCovered,
+            vehicle_transmission: transmission,
+            hourly_rate: hourlyRate
           })
           .eq('id', user.id);
 
@@ -369,54 +375,83 @@ export const Dashboard = () => {
                       )}
 
                       {isInstructor && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Suburbs Covered (Service Areas)</label>
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {suburbsCovered.map((s, idx) => (
-                              <span key={idx} className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-bold animate-in fade-in zoom-in duration-200">
-                                {s}
-                                <button
-                                  type="button"
-                                  onClick={() => setSuburbsCovered(prev => prev.filter((_, i) => i !== idx))}
-                                  className="hover:text-red-500 transition-colors"
-                                >
-                                  <XCircle className="h-3.5 w-3.5" />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={newSuburb}
-                              onChange={(e) => setNewSuburb(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Suburbs Covered (Service Areas)</label>
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {suburbsCovered.map((s, idx) => (
+                                <span key={idx} className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-bold animate-in fade-in zoom-in duration-200">
+                                  {s}
+                                  <button
+                                    type="button"
+                                    onClick={() => setSuburbsCovered(prev => prev.filter((_, i) => i !== idx))}
+                                    className="hover:text-red-500 transition-colors"
+                                  >
+                                    <XCircle className="h-3.5 w-3.5" />
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={newSuburb}
+                                onChange={(e) => setNewSuburb(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    if (newSuburb.trim()) {
+                                      setSuburbsCovered(prev => [...prev, newSuburb.trim()]);
+                                      setNewSuburb('');
+                                    }
+                                  }
+                                }}
+                                className="flex-grow border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-primary focus:border-primary"
+                                placeholder="Add a suburb..."
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
                                   if (newSuburb.trim()) {
                                     setSuburbsCovered(prev => [...prev, newSuburb.trim()]);
                                     setNewSuburb('');
                                   }
-                                }
-                              }}
-                              className="flex-grow border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-primary focus:border-primary"
-                              placeholder="Add a suburb..."
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (newSuburb.trim()) {
-                                  setSuburbsCovered(prev => [...prev, newSuburb.trim()]);
-                                  setNewSuburb('');
-                                }
-                              }}
-                              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 rounded-lg transition-colors border border-gray-200"
-                            >
-                              Add
-                            </button>
+                                }}
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 rounded-lg transition-colors border border-gray-200"
+                              >
+                                Add
+                              </button>
+                            </div>
+                            <p className="mt-2 text-xs text-gray-400">List the areas where you provide driving lessons.</p>
                           </div>
-                          <p className="mt-2 text-xs text-gray-400">List the areas where you provide driving lessons.</p>
-                        </div>
+
+                          <div className="grid grid-cols-2 gap-4 pt-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Transmission Offered</label>
+                              <select
+                                value={transmission}
+                                onChange={(e) => setTransmission(e.target.value as 'Auto' | 'Manual')}
+                                className="mt-1 block w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring-primary focus:border-primary"
+                              >
+                                <option value="Auto">Automatic Only</option>
+                                <option value="Manual">Manual Only</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700">Hourly Rate ($)</label>
+                              <div className="relative mt-1">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                                <input
+                                  type="number"
+                                  value={hourlyRate}
+                                  onChange={(e) => setHourlyRate(parseInt(e.target.value) || 0)}
+                                  className="block w-full border border-gray-300 rounded-lg pl-8 p-3 shadow-sm focus:ring-primary focus:border-primary"
+                                  placeholder="75"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </>
                       )}
                     </div>
 
