@@ -27,6 +27,25 @@ serve(async (req) => {
             })
         }
 
+        // 0. Verify requester is an admin
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader) throw new Error('No authorization header');
+
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user: requester }, error: authError } = await supabaseClient.auth.getUser(token);
+
+        if (authError || !requester) throw new Error('Unauthorized');
+
+        const { data: requesterProfile, error: requesterProfileError } = await supabaseClient
+            .from('profiles')
+            .select('role')
+            .eq('id', requester.id)
+            .single();
+
+        if (requesterProfileError || requesterProfile?.role !== 'admin') {
+            throw new Error('Forbidden: Admin access required');
+        }
+
         // 1. Update the user's app_metadata to store the verification metadata
         // This retains the verification metadata to comply with APP 11 without keeping the biometric image.
         const { error: updateError } = await supabaseClient.auth.admin.updateUserById(userId, {

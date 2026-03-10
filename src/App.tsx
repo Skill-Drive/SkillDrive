@@ -35,7 +35,7 @@ function App() {
             <Route path="/search" element={<SearchResults />} />
             <Route path="/instructor/:id" element={<InstructorProfile />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
             <Route path="/verify" element={<ProtectedRoute><InstructorVerification /></ProtectedRoute>} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
