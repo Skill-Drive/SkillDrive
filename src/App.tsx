@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Home } from './pages/Home';
+import { Teach } from './pages/Teach';
 import { SearchResults } from './pages/SearchResults';
 import { InstructorProfile } from './pages/InstructorProfile';
 import { Dashboard } from './pages/Dashboard';
@@ -30,6 +31,7 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/teach" element={<Teach />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/instructor/:id" element={<InstructorProfile />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
