@@ -21,12 +21,10 @@ serve(async (req) => {
         const { id } = await req.json();
         if (!id) throw new Error("Instructor ID is required");
 
-        const queryId = id === "1" ? "d11b32d2-069e-4e68-9a67-c102324dc801" : id;
-
         const { data: profile, error } = await supabaseClient
             .from("profiles")
             .select("*, instructor_profiles(*)")
-            .eq("id", queryId)
+            .eq("id", id)
             .single();
 
         if (error) throw error;

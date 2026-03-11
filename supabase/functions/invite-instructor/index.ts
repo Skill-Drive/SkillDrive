@@ -20,6 +20,26 @@ serve(async (req) => {
 
         const { email } = await req.json()
 
+        // Verify requester is an admin
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader) throw new Error('No authorization header');
+
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user: requester }, error: authError } = await supabaseClient.auth.getUser(token);
+
+        if (authError || !requester) throw new Error('Unauthorized');
+
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles')
+            .select('role')
+            .eq('id', requester.id)
+            .single();
+
+        if (profileError || profile?.role !== 'admin') {
+            throw new Error('Forbidden: Admin access required');
+        }
+
+
         if (!email) {
             return new Response(JSON.stringify({ error: 'Email is required' }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },

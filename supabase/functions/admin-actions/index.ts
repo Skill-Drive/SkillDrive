@@ -43,16 +43,16 @@ serve(async (req) => {
 
         switch (action) {
             case 'get-stats':
-                const { data: userCount } = await supabaseClient.from('profiles').select('id', { count: 'exact', head: true });
-                const { data: instructorCount } = await supabaseClient.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'instructor');
-                const { data: bookingCount } = await supabaseClient.from('bookings').select('id', { count: 'exact', head: true });
-                const { data: totalRevenue } = await supabaseClient.from('bookings').select('price').eq('status', 'confirmed');
+                const { count: userCount } = await supabaseClient.from('profiles').select('id', { count: 'exact', head: true });
+                const { count: instructorCount } = await supabaseClient.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'instructor');
+                const { count: bookingCount } = await supabaseClient.from('bookings').select('id', { count: 'exact', head: true });
+                const { data: totalRevenueData } = await supabaseClient.from('bookings').select('price').eq('status', 'confirmed');
 
                 result = {
                     totalUsers: userCount || 0,
                     totalInstructors: instructorCount || 0,
                     totalBookings: bookingCount || 0,
-                    totalRevenue: (totalRevenue || []).reduce((acc, b) => acc + b.price, 0)
+                    totalRevenue: (totalRevenueData || []).reduce((acc, b) => acc + (b.price || 0), 0)
                 };
                 break;
 

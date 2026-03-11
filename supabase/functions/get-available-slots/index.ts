@@ -21,20 +21,38 @@ serve(async (req) => {
         const { instructorId, dateIso } = await req.json();
         if (!instructorId || !dateIso) throw new Error("instructorId and dateIso are required");
 
-        const queryId = instructorId === "1" ? "d11b32d2-069e-4e68-9a67-c102324dc801" : instructorId;
         const requestedDate = new Date(dateIso);
 
         const { data: bookings, error } = await supabaseClient
             .from("bookings")
             .select("*")
-            .eq("instructor_id", queryId)
+            .eq("instructor_id", instructorId)
             .neq("status", "cancelled");
 
         if (error) throw error;
 
         const slots: string[] = []; // return ISO strings back to client
-        const startHour = 9;
-        const endHour = 17;
+
+        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const dayOfWeek = days[requestedDate.getDay()];
+
+        const { data: availability, error: availError } = await supabaseClient
+            .from("instructor_availability")
+            .select("start_time, end_time")
+            .eq("instructor_id", instructorId)
+            .eq("day_of_week", dayOfWeek)
+            .eq("is_active", true)
+            .single();
+
+        let startHour = 9;
+        let endHour = 17;
+
+        if (!availError && availability) {
+            startHour = parseInt(availability.start_time.split(':')[0], 10);
+            endHour = parseInt(availability.end_time.split(':')[0], 10);
+        } else if (availError && availError.code !== 'PGRST116') {
+            console.error("Availability fetch error:", availError);
+        }
 
         for (let i = startHour; i < endHour; i++) {
             const slot = setMinutes(setHours(requestedDate, i), 0);

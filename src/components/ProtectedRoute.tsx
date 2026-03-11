@@ -23,10 +23,9 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     }
 
     // Check for specific roles if provided
-    if (allowedRoles && profile) {
-        const userRole = profile.role;
-        if (!allowedRoles.includes(userRole)) {
-            // If they don't have access, send them to dashboard
+    if (allowedRoles) {
+        if (!profile || !allowedRoles.includes(profile.role)) {
+            // If they don't have the required role (or profile failed to load), redirect
             return <Navigate to="/dashboard" replace />;
         }
     }

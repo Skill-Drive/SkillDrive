@@ -49,22 +49,14 @@ serve(async (req) => {
       throw new Error("Instructor has not completed Stripe onboarding.");
     }
 
-    // Create a temporary booking in 'pending' status
-    const { data: booking, error: bookingError } = await supabaseClient
-      .from("bookings")
-      .insert({
-        instructor_id,
-        learner_id: user.id,
-        start_time,
-        end_time,
-        pickup_address,
-        price: actualPrice / 100,
-        status: "pending",
-      })
-      .select()
-      .single();
-
-    if (bookingError) throw bookingError;
+    const sessionMetadata = {
+      instructor_id,
+      learner_id: user.id,
+      start_time,
+      end_time,
+      pickup_address,
+      price: (actualPrice / 100).toString(),
+    };
 
     // Conditionally enable invoice creation for lessons > $82.50 (inclusive of GST)
     // $82.50 AUD = 8250 cents
@@ -100,20 +92,14 @@ serve(async (req) => {
         enabled: true,
         invoice_data: {
           custom_fields: [
-            { name: 'SkillDrive ABN', value: '12 345 678 901' }, // Dummy ABN for compliance testing
+            { name: 'SkillDrive ABN', value: Deno.env.get('SKILLDRIVE_ABN') || '12 345 678 901' },
           ],
         },
       } : { enabled: false },
+      metadata: sessionMetadata,
       success_url: `${req.headers.get("origin")}/dashboard?success=true`,
       cancel_url: `${req.headers.get("origin")}/checkout?canceled=true`,
-      client_reference_id: booking.id, // we store booking ID here so webhook knows
     });
-
-    // Update booking with the stripe session ID
-    await supabaseClient
-      .from("bookings")
-      .update({ stripe_session_id: session.id })
-      .eq("id", booking.id);
 
     return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

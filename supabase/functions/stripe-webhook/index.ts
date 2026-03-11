@@ -40,19 +40,60 @@ serve(async (request) => {
     switch (event.type) {
         case "checkout.session.completed": {
             const session = event.data.object as any;
-            const bookingId = session.client_reference_id;
+            const metadata = session.metadata;
 
-            if (bookingId) {
+            if (metadata && metadata.instructor_id) {
                 const { error } = await supabaseClient
                     .from("bookings")
-                    .update({
+                    .insert({
+                        instructor_id: metadata.instructor_id,
+                        learner_id: metadata.learner_id,
+                        start_time: metadata.start_time,
+                        end_time: metadata.end_time,
+                        pickup_address: metadata.pickup_address,
+                        price: parseFloat(metadata.price),
                         status: "confirmed",
                         stripe_payment_intent: session.payment_intent,
-                    })
-                    .eq("id", bookingId);
+                        stripe_session_id: session.id
+                    });
 
                 if (error) {
-                    console.error("Error updating booking", error);
+                    console.error("Error creating confirmed booking", error);
+                } else {
+                    // M5: Send email notifications
+                    const { data: profiles } = await supabaseClient
+                        .from('profiles')
+                        .select('email, role')
+                        .in('id', [metadata.instructor_id, metadata.learner_id]);
+
+                    if (profiles) {
+                        const learnerEmail = profiles.find(p => p.role === 'learner')?.email;
+                        const instructorEmail = profiles.find(p => p.role === 'instructor')?.email;
+
+                        // Using Resend for transactional emails (API key required in env)
+                        const resendApiKey = Deno.env.get('RESEND_API_KEY');
+                        if (resendApiKey && learnerEmail && instructorEmail) {
+                            try {
+                                await fetch('https://api.resend.com/emails', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${resendApiKey}`
+                                    },
+                                    body: JSON.stringify({
+                                        from: 'SkillDrive <notifications@skilldrive.com.au>',
+                                        to: [learnerEmail, instructorEmail],
+                                        subject: 'SkillDrive Booking Confirmed',
+                                        html: '<p>A new SkillDrive lesson has been confirmed!</p>'
+                                    })
+                                });
+                            } catch (emailError) {
+                                console.error('Failed to send confirmation email:', emailError);
+                            }
+                        } else {
+                            console.log('Skipping emails: RESEND_API_KEY not set or missing emails.');
+                        }
+                    }
                 }
             }
             break;

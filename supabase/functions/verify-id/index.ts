@@ -18,7 +18,7 @@ serve(async (req) => {
             { auth: { autoRefreshToken: false, persistSession: false } }
         )
 
-        const { userId, licensePath, selfiePath, action } = await req.json()
+        const { userId, licensePath, selfiePath, bucket, action } = await req.json()
 
         if (!userId || action !== 'verify') {
             return new Response(JSON.stringify({ error: 'userId and valid action required' }), {
@@ -61,11 +61,10 @@ serve(async (req) => {
         if (selfiePath) filesToDelete.push(selfiePath);
 
         if (filesToDelete.length > 0) {
-            // Assuming they are in instructor-licenses
-            const { error: storageError } = await supabaseClient.storage.from('instructor-licenses').remove(filesToDelete);
+            const targetBucket = bucket || 'instructor-licenses';
+            const { error: storageError } = await supabaseClient.storage.from(targetBucket).remove(filesToDelete);
             if (storageError) {
-                // If they were learner licenses, we could try the other bucket or pass bucket name
-                await supabaseClient.storage.from('learner-licenses').remove(filesToDelete);
+                console.error("Failed to securely delete files:", storageError);
             }
         }
 

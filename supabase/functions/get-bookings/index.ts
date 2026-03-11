@@ -36,24 +36,37 @@ serve(async (req) => {
         if (bookingsError) throw bookingsError;
 
         // Enhance bookings with the 'other' party's profile data
-        const enhancedBookings = await Promise.all(
-            (bookings || []).map(async (booking: any) => {
-                const isUserLearner = booking.learner_id === user.id;
-                const otherPartyId = isUserLearner ? booking.instructor_id : booking.learner_id;
+        const otherPartyIds = [...new Set((bookings || []).map((b: any) =>
+            b.learner_id === user.id ? b.instructor_id : b.learner_id
+        ))];
 
-                const { data: profile } = await supabaseClient
-                    .from("profiles")
-                    .select("full_name, avatar_url, phone, role")
-                    .eq("id", otherPartyId)
-                    .single();
+        let profilesMap: Record<string, any> = {};
 
-                return {
-                    ...booking,
-                    other_party: profile || { full_name: "Unknown User" },
-                    user_is_learner: isUserLearner,
-                };
-            })
-        );
+        if (otherPartyIds.length > 0) {
+            const { data: profiles, error: profilesError } = await supabaseClient
+                .from("profiles")
+                .select("id, full_name, avatar_url, phone, role")
+                .in("id", otherPartyIds);
+
+            if (!profilesError && profiles) {
+                profilesMap = profiles.reduce((acc, p) => {
+                    acc[p.id] = p;
+                    return acc;
+                }, {} as Record<string, any>);
+            }
+        }
+
+        const enhancedBookings = (bookings || []).map((booking: any) => {
+            const isUserLearner = booking.learner_id === user.id;
+            const otherPartyId = isUserLearner ? booking.instructor_id : booking.learner_id;
+            const profile = profilesMap[otherPartyId];
+
+            return {
+                ...booking,
+                other_party: profile || { full_name: "Unknown User" },
+                user_is_learner: isUserLearner,
+            };
+        });
 
         return new Response(JSON.stringify({ bookings: enhancedBookings }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
