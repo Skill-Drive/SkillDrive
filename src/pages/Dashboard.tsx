@@ -47,7 +47,7 @@ export const Dashboard = () => {
     try {
       setSaving(true);
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+      const fileName = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -132,7 +132,7 @@ export const Dashboard = () => {
     try {
       setSaving(true);
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${side}-${Math.random()}.${fileExt}`;
+      const fileName = `${user.id}/${side}-${crypto.randomUUID()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage

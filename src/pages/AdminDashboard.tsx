@@ -21,6 +21,8 @@ export const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState<AdminTab>('overview');
     const [stats, setStats] = useState<any>(null);
     const [users, setUsers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
     const [selectedInstructor, setSelectedInstructor] = useState<any>(null);
     const [isViewDocsOpen, setIsViewDocsOpen] = useState(false);
 
@@ -412,7 +414,6 @@ export const AdminDashboard = () => {
                     </div>
                 </div>
             )}
-            </div>
         </div>
     );
 };

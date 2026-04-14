@@ -55,8 +55,8 @@ export const BookingModal = ({ instructor, slot, onClose }: BookingModalProps) =
           instructor_id: instructor.id,
           start_time: slot.toISOString(),
           end_time: new Date(slot.getTime() + 60 * 60 * 1000).toISOString(), // 1 hour duration
-          pickup_address: sanitizedAddress,
-          price: instructor.hourly_rate
+          pickup_address: sanitizedAddress
+          // Price is now strictly enforced server-side for security
         }
       });
 

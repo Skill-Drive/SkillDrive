@@ -33,16 +33,26 @@ serve(async (req) => {
       throw new Error("Unauthorized");
     }
 
-    const { instructor_id, start_time, end_time, pickup_address, price } = await req.json();
+    const { instructor_id, start_time, end_time, pickup_address } = await req.json();
 
-    // Fetch instructor details for destination charge
-    const { data: instructor } = await supabaseClient
+    // Fetch instructor details for destination charge - CRITICAL: Always use DB price
+    const { data: instructor, error: instructorError } = await supabaseClient
       .from("instructor_profiles")
       .select("hourly_rate, stripe_account_id")
       .eq("id", instructor_id)
       .single();
 
-    const actualPrice = instructor?.hourly_rate ? instructor.hourly_rate * 100 : price * 100;
+    if (instructorError || !instructor) {
+      throw new Error("Instructor profile not found or invalid.");
+    }
+
+    // Ensure we have a valid rate from the database
+    const rate = instructor.hourly_rate;
+    if (!rate || rate <= 0) {
+      throw new Error("Invalid instructor hourly rate configuration.");
+    }
+
+    const actualPrice = rate * 100; // Convert to cents
     const platformFee = Math.round(actualPrice * 0.15); // 15% platform fee
 
     if (!instructor?.stripe_account_id) {
