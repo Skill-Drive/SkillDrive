@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { format, parseISO, isFuture } from 'date-fns';
+import { useSearchParams } from 'react-router-dom';
 import { Calendar, Clock, MapPin, CheckCircle, XCircle, User, BookOpen, Loader2, Camera, MapPinned } from 'lucide-react';
 import { bookingService } from '../services/bookingService';
 import { useAuth } from '../hooks/useAuth';
@@ -8,10 +9,24 @@ import type { Booking } from '../types';
 
 export const Dashboard = () => {
   const { user, profile, initialize } = useAuth();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<'profile' | 'lessons'>('profile');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      setShowSuccess(true);
+      setActiveTab('lessons');
+      // Clear the URL parameter without reloading
+      window.history.replaceState({}, '', '/dashboard');
+      // Hide the message after 5 seconds
+      const timer = setTimeout(() => setShowSuccess(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
   // Profile form state
   const [fullName, setFullName] = useState(profile?.full_name || '');
@@ -289,6 +304,23 @@ export const Dashboard = () => {
       </div>
 
       <div className="container-main mt-10">
+        {showSuccess && (
+          <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="p-2 bg-green-100 rounded-full">
+              <CheckCircle className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <p className="font-bold text-green-900 text-lg">Payment Successful!</p>
+              <p className="text-green-700">Your driving lesson has been booked and confirmed.</p>
+            </div>
+            <button 
+              onClick={() => setShowSuccess(false)}
+              className="ml-auto p-1 hover:bg-green-100 rounded-full text-green-500 transition-colors"
+            >
+              <XCircle className="h-5 w-5" />
+            </button>
+          </div>
+        )}
         {activeTab === 'profile' ? (
           <div className="max-w-4xl">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

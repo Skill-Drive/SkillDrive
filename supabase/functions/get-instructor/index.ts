@@ -56,6 +56,7 @@ serve(async (req) => {
             hourly_rate: profile.instructor_profiles.hourly_rate,
             rating: profile.instructor_profiles.rating,
             review_count: profile.instructor_profiles.review_count,
+            id_verified: profile.instructor_profiles.id_verified || false,
         };
 
         return new Response(JSON.stringify({ instructor }), {

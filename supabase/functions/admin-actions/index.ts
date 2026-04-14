@@ -81,6 +81,22 @@ serve(async (req) => {
                 result = { success: true };
                 break;
 
+            case 'verify-instructor':
+                const { instructorId, verified } = params;
+                const { error: verifyError } = await supabaseClient
+                    .from('instructor_profiles')
+                    .update({ id_verified: verified })
+                    .eq('id', instructorId);
+                if (verifyError) throw verifyError;
+
+                // Also update app_metadata for quick checks
+                await supabaseClient.auth.admin.updateUserById(instructorId, {
+                    app_metadata: { id_verified: verified }
+                });
+
+                result = { success: true };
+                break;
+
             case 'delete-user':
                 const { userIdToDelete } = params;
                 const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userIdToDelete);

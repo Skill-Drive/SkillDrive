@@ -1,0 +1,1 @@
+Based on the audit, fix the security flaws in the `create-checkout-session` and `verify-id` Supabase functions. Prioritize fixing the price manipulation vulnerability.

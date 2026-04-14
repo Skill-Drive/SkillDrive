@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -14,6 +14,8 @@ export const Navbar = () => {
       navigate('/login');
     }
   };
+
+  const isAdmin = profile?.role === 'admin';
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -42,6 +44,11 @@ export const Navbar = () => {
             <div className="h-6 w-px bg-gray-300"></div>
             {user ? (
               <>
+                {isAdmin && (
+                  <Link to="/admin" className="text-primary font-black text-sm hover:underline">
+                    Admin Panel
+                  </Link>
+                )}
                 <Link to="/dashboard" className="flex items-center gap-2 text-gray-600 hover:text-primary font-medium text-sm">
                   <UserCircle className="h-5 w-5" />
                   My Profile
@@ -92,6 +99,11 @@ export const Navbar = () => {
             </Link>
             {user ? (
               <>
+                {isAdmin && (
+                  <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-black text-primary hover:bg-blue-50">
+                    Admin Panel
+                  </Link>
+                )}
                 <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
                   My Profile
                 </Link>

@@ -21,8 +21,17 @@ export const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState<AdminTab>('overview');
     const [stats, setStats] = useState<any>(null);
     const [users, setUsers] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedInstructor, setSelectedInstructor] = useState<any>(null);
+    const [isViewDocsOpen, setIsViewDocsOpen] = useState(false);
+
+    const handleVerify = async (instructorId: string, verified: boolean) => {
+        setLoading(true);
+        try {
+            await handleAction('verify-instructor', { instructorId, verified });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         fetchAdminData();
@@ -290,22 +299,42 @@ export const AdminDashboard = () => {
                                             <div className="flex items-center gap-2 text-xs text-gray-600">
                                                 <Phone className="h-3 w-3" /> {instructor.phone || 'No phone'}
                                             </div>
+                                            {instructor.instructor_profiles?.[0]?.wwcc_status && (
+                                                <div className="flex items-center gap-2 text-xs text-blue-600 font-bold">
+                                                    <ShieldCheck className="h-3 w-3" /> WWCC: {instructor.instructor_profiles[0].wwcc_status}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {!instructor.instructor_profiles?.[0]?.id_verified && (
-                                        <div className="flex gap-3">
+                                    <div className="flex gap-3">
+                                        {!instructor.instructor_profiles?.[0]?.id_verified ? (
                                             <button
-                                                onClick={() => handleAction('update-user-role', { userId: instructor.id, newRole: 'instructor' })}
-                                                className="flex-grow bg-primary text-white font-bold py-2 rounded-xl text-sm hover:bg-primary/90 transition-colors"
+                                                onClick={() => handleVerify(instructor.id, true)}
+                                                disabled={loading}
+                                                className="flex-grow bg-primary text-white font-bold py-2 rounded-xl text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
                                             >
                                                 Approve
                                             </button>
-                                            <button className="flex-grow bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-sm hover:bg-gray-200 transition-colors">
-                                                View Documents
+                                        ) : (
+                                            <button
+                                                onClick={() => handleVerify(instructor.id, false)}
+                                                disabled={loading}
+                                                className="flex-grow bg-red-50 text-red-600 border border-red-100 font-bold py-2 rounded-xl text-sm hover:bg-red-100 transition-colors disabled:opacity-50"
+                                            >
+                                                Revoke
                                             </button>
-                                        </div>
-                                    )}
+                                        )}
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedInstructor(instructor);
+                                                setIsViewDocsOpen(true);
+                                            }}
+                                            className="flex-grow bg-gray-100 text-gray-600 font-bold py-2 rounded-xl text-sm hover:bg-gray-200 transition-colors"
+                                        >
+                                            View Docs
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -318,6 +347,71 @@ export const AdminDashboard = () => {
                         <p className="font-medium">Global bookings log visibility coming soon.</p>
                     </div>
                 )}
+            </div>
+
+            {/* View Docs Modal */}
+            {isViewDocsOpen && selectedInstructor && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <div>
+                                <h3 className="font-bold text-xl text-gray-900">{selectedInstructor.full_name}</h3>
+                                <p className="text-sm text-gray-500">Credential Verification Documents</p>
+                            </div>
+                            <button onClick={() => setIsViewDocsOpen(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                                <ShieldAlert className="h-6 w-6 text-gray-500" />
+                            </button>
+                        </div>
+                        <div className="p-8 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-3">
+                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest text-center">License (Front)</p>
+                                <div className="aspect-[1.6/1] bg-gray-100 rounded-xl overflow-hidden border-2 border-gray-200 flex items-center justify-center">
+                                    {selectedInstructor.learner_data?.[0]?.license_front_url || selectedInstructor.instructor_profiles?.[0]?.license_front_url ? (
+                                        <img src={selectedInstructor.learner_data?.[0]?.license_front_url || selectedInstructor.instructor_profiles?.[0]?.license_front_url} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-center p-4">
+                                            <ShieldAlert className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                                            <p className="text-sm text-gray-400 font-medium">Not Uploaded</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest text-center">License (Back)</p>
+                                <div className="aspect-[1.6/1] bg-gray-100 rounded-xl overflow-hidden border-2 border-gray-200 flex items-center justify-center">
+                                    {selectedInstructor.learner_data?.[0]?.license_back_url || selectedInstructor.instructor_profiles?.[0]?.license_back_url ? (
+                                        <img src={selectedInstructor.learner_data?.[0]?.license_back_url || selectedInstructor.instructor_profiles?.[0]?.license_back_url} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-center p-4">
+                                            <ShieldAlert className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                                            <p className="text-sm text-gray-400 font-medium">Not Uploaded</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                             <button 
+                                onClick={() => setIsViewDocsOpen(false)}
+                                className="px-6 py-2.5 bg-white border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                             >
+                                Close
+                             </button>
+                             {!selectedInstructor.instructor_profiles?.[0]?.id_verified && (
+                                <button 
+                                    onClick={() => {
+                                        handleVerify(selectedInstructor.id, true);
+                                        setIsViewDocsOpen(false);
+                                    }}
+                                    className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors"
+                                >
+                                    Verify Instructor
+                                </button>
+                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
             </div>
         </div>
     );

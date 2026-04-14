@@ -19,6 +19,7 @@ export interface InstructorProfile extends Profile {
   hourly_rate: number;
   rating: number;
   review_count: number;
+  id_verified: boolean;
 }
 
 export interface Booking {

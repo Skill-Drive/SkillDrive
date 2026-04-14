@@ -51,6 +51,7 @@ serve(async (req) => {
                 price: p.instructor_profiles?.hourly_rate || 75,
                 image: p.avatar_url || p.instructor_profiles?.vehicle_image_url || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80",
                 suburbs_covered: p.instructor_profiles?.suburbs_covered || [],
+                id_verified: p.instructor_profiles?.id_verified || false,
                 nextAvailable: "Available Soon", // Could integrate get-available-slots calculation here if needed
             };
         });

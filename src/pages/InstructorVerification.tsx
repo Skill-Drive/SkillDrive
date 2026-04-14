@@ -49,15 +49,33 @@ export const InstructorVerification = () => {
                 .upload(selfiePath, selfieImage);
             if (selfieError) throw selfieError;
 
-            // Simulated automated verification window (5-12 seconds) as per requirements
+            // Get public URLs
+            const { data: { publicUrl: licenseUrl } } = supabase.storage
+                .from('instructor-licenses')
+                .getPublicUrl(licensePath);
+            
+            const { data: { publicUrl: selfieUrl } } = supabase.storage
+                .from('instructor-licenses')
+                .getPublicUrl(selfiePath);
+
+            // Update instructor_profiles with document URLs and pending status
+            const { error: updateError } = await supabase
+                .from('instructor_profiles')
+                .update({
+                    license_front_url: licenseUrl,
+                    license_back_url: selfieUrl, // Using selfie as back for now or just storing it
+                    verification_status: 'pending_admin_review'
+                })
+                .eq('id', user.id);
+
+            if (updateError) throw updateError;
+
             setStep('pending');
 
-            // In a real system, you would call an Edge Function here
-            // const { data } = await supabase.functions.invoke('verify-id', { body: { userId: user.id } });
-
+            // Simulate the "processing" time for the user experience
             setTimeout(() => {
                 setStep('verified');
-            }, 7000); // 7 second simulated delay
+            }, 5000);
 
         } catch (err: any) {
             setError(err.message || 'Verification upload failed. Please try again.');

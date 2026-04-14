@@ -13,6 +13,7 @@ export interface Instructor {
   image: string;
   nextAvailable: string;
   suburbs_covered?: string[];
+  id_verified: boolean;
 }
 
 interface InstructorCardProps {
@@ -41,8 +42,14 @@ export const InstructorCard = ({ instructor }: InstructorCardProps) => {
             <div>
               <h3 className="text-xl font-bold text-gray-900">{instructor.name}</h3>
               <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                <Shield className="h-3 w-3 text-green-600" />
-                Verified Instructor • {instructor.location}
+                {instructor.id_verified ? (
+                  <>
+                    <Shield className="h-3 w-3 text-green-600" />
+                    Verified Instructor • {instructor.location}
+                  </>
+                ) : (
+                  <span>New Instructor • {instructor.location}</span>
+                )}
               </p>
             </div>
             <div className="flex flex-col items-end">

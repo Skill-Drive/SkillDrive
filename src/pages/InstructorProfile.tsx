@@ -63,10 +63,17 @@ export const InstructorProfile = () => {
                   <span className="font-bold text-gray-900">{instructor.rating}</span>
                   ({instructor.review_count} reviews)
                 </span>
-                <span className="flex items-center gap-1">
-                  <Shield className="h-5 w-5 text-green-600" />
-                  Verified Instructor
-                </span>
+                {instructor.id_verified ? (
+                  <span className="flex items-center gap-1">
+                    <Shield className="h-5 w-5 text-green-600" />
+                    Verified Instructor
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-gray-500 italic">
+                    <Shield className="h-5 w-5 text-gray-300" />
+                    New Instructor
+                  </span>
+                )}
                 <span className="flex items-center gap-1">
                   <MapPin className="h-5 w-5 text-gray-400" />
                   {instructor.suburbs_covered[0]} + {instructor.suburbs_covered.length - 1} more
