@@ -41,6 +41,48 @@ serve(async (req) => {
 
         if (profileError) throw profileError;
 
+        // Generate signed URLs for private license images
+        const learnerData = Array.isArray(profile.learner_data) ? profile.learner_data[0] : profile.learner_data;
+        const instructorProfile = Array.isArray(profile.instructor_profiles) ? profile.instructor_profiles[0] : profile.instructor_profiles;
+        
+        if (learnerData) {
+            if (learnerData.license_front_url && !learnerData.license_front_url.includes('token=')) {
+                const path = learnerData.license_front_url.split('/').pop();
+                const filePath = `${user.id}/${path}`;
+                const { data: signedData } = await supabaseClient.storage
+                    .from('learner-licenses')
+                    .createSignedUrl(filePath, 3600);
+                if (signedData) learnerData.license_front_url = signedData.signedUrl;
+            }
+            if (learnerData.license_back_url && !learnerData.license_back_url.includes('token=')) {
+                const path = learnerData.license_back_url.split('/').pop();
+                const filePath = `${user.id}/${path}`;
+                const { data: signedData } = await supabaseClient.storage
+                    .from('learner-licenses')
+                    .createSignedUrl(filePath, 3600);
+                if (signedData) learnerData.license_back_url = signedData.signedUrl;
+            }
+        }
+
+        if (instructorProfile) {
+            if (instructorProfile.license_front_url && !instructorProfile.license_front_url.includes('token=')) {
+                const path = instructorProfile.license_front_url.split('/').pop();
+                const filePath = `${user.id}/${path}`;
+                const { data: signedData } = await supabaseClient.storage
+                    .from('instructor-licenses')
+                    .createSignedUrl(filePath, 3600);
+                if (signedData) instructorProfile.license_front_url = signedData.signedUrl;
+            }
+            if (instructorProfile.license_back_url && !instructorProfile.license_back_url.includes('token=')) {
+                const path = instructorProfile.license_back_url.split('/').pop();
+                const filePath = `${user.id}/${path}`;
+                const { data: signedData } = await supabaseClient.storage
+                    .from('instructor-licenses')
+                    .createSignedUrl(filePath, 3600);
+                if (signedData) instructorProfile.license_back_url = signedData.signedUrl;
+            }
+        }
+
         return new Response(JSON.stringify({ profile }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 200,

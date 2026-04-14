@@ -11,8 +11,13 @@ CREATE TABLE IF NOT EXISTS public.learner_data (
 -- Enable RLS on learner_data
 ALTER TABLE public.learner_data ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Learners can view their own data" ON public.learner_data;
 CREATE POLICY "Learners can view their own data" ON public.learner_data FOR SELECT USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Learners can update their own data" ON public.learner_data;
 CREATE POLICY "Learners can update their own data" ON public.learner_data FOR UPDATE USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Learners can insert their own data" ON public.learner_data;
 CREATE POLICY "Learners can insert their own data" ON public.learner_data FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- 2. Update the existing on_auth_user_created trigger to also populate learner_data if role is learner
@@ -40,40 +45,48 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 3. Create Storage Buckets and RLS Policies for Licenses
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types) 
 VALUES 
-  ('instructor-licenses', 'instructor-licenses', false, 5242880, '{"image/jpeg","image/png","image/webp","application/pdf"}'),
-  ('learner-licenses', 'learner-licenses', false, 5242880, '{"image/jpeg","image/png","image/webp","application/pdf"}')
+  ('instructor-licenses', 'instructor-licenses', false, 5242880, '{"image/jpeg","image/png","image/webp","application/pdf","application/octet-stream"}'),
+  ('learner-licenses', 'learner-licenses', false, 5242880, '{"image/jpeg","image/png","image/webp","application/pdf","application/octet-stream"}')
 ON CONFLICT (id) DO NOTHING;
 
 -- RLS for instructor-licenses: Only the owner (auth.uid() = folder name) can access/insert
+DROP POLICY IF EXISTS "Instructors can upload their own licenses" ON storage.objects;
 CREATE POLICY "Instructors can upload their own licenses" ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'instructor-licenses' AND (storage.foldername(name))[1] = auth.uid()::text);
 
+DROP POLICY IF EXISTS "Instructors can select their own licenses" ON storage.objects;
 CREATE POLICY "Instructors can select their own licenses" ON storage.objects
   FOR SELECT TO authenticated
   USING (bucket_id = 'instructor-licenses' AND (storage.foldername(name))[1] = auth.uid()::text);
 
+DROP POLICY IF EXISTS "Instructors can update their own licenses" ON storage.objects;
 CREATE POLICY "Instructors can update their own licenses" ON storage.objects
   FOR UPDATE TO authenticated
   USING (bucket_id = 'instructor-licenses' AND (storage.foldername(name))[1] = auth.uid()::text);
 
+DROP POLICY IF EXISTS "Instructors can delete their own licenses" ON storage.objects;
 CREATE POLICY "Instructors can delete their own licenses" ON storage.objects
   FOR DELETE TO authenticated
   USING (bucket_id = 'instructor-licenses' AND (storage.foldername(name))[1] = auth.uid()::text);
 
 -- RLS for learner-licenses
+DROP POLICY IF EXISTS "Learners can upload their own licenses" ON storage.objects;
 CREATE POLICY "Learners can upload their own licenses" ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'learner-licenses' AND (storage.foldername(name))[1] = auth.uid()::text);
 
+DROP POLICY IF EXISTS "Learners can select their own licenses" ON storage.objects;
 CREATE POLICY "Learners can select their own licenses" ON storage.objects
   FOR SELECT TO authenticated
   USING (bucket_id = 'learner-licenses' AND (storage.foldername(name))[1] = auth.uid()::text);
 
+DROP POLICY IF EXISTS "Learners can update their own licenses" ON storage.objects;
 CREATE POLICY "Learners can update their own licenses" ON storage.objects
   FOR UPDATE TO authenticated
   USING (bucket_id = 'learner-licenses' AND (storage.foldername(name))[1] = auth.uid()::text);
 
+DROP POLICY IF EXISTS "Learners can delete their own licenses" ON storage.objects;
 CREATE POLICY "Learners can delete their own licenses" ON storage.objects
   FOR DELETE TO authenticated
   USING (bucket_id = 'learner-licenses' AND (storage.foldername(name))[1] = auth.uid()::text);

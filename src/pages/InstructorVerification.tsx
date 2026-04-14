@@ -39,14 +39,22 @@ export const InstructorVerification = () => {
             const licensePath = `${user.id}/${Date.now()}_license_${licenseImage.name}`;
             const { error: licenseError } = await supabase.storage
                 .from('instructor-licenses')
-                .upload(licensePath, licenseImage);
+                .upload(licensePath, licenseImage, {
+                    contentType: licenseImage.type === 'application/octet-stream' 
+                        ? `image/${licenseImage.name.split('.').pop() === 'jpg' ? 'jpeg' : licenseImage.name.split('.').pop()}` 
+                        : licenseImage.type
+                });
             if (licenseError) throw licenseError;
 
             // Upload Selfie
             const selfiePath = `${user.id}/${Date.now()}_selfie_${selfieImage.name}`;
             const { error: selfieError } = await supabase.storage
                 .from('instructor-licenses')
-                .upload(selfiePath, selfieImage);
+                .upload(selfiePath, selfieImage, {
+                    contentType: selfieImage.type === 'application/octet-stream' 
+                        ? `image/${selfieImage.name.split('.').pop() === 'jpg' ? 'jpeg' : selfieImage.name.split('.').pop()}` 
+                        : selfieImage.type
+                });
             if (selfieError) throw selfieError;
 
             // Get public URLs

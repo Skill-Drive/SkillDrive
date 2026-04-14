@@ -52,7 +52,9 @@ export const Dashboard = () => {
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          contentType: file.type === 'application/octet-stream' ? `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}` : file.type
+        });
 
       if (uploadError) throw uploadError;
 
@@ -137,22 +139,31 @@ export const Dashboard = () => {
 
       const { error: uploadError } = await supabase.storage
         .from('learner-licenses')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          contentType: file.type === 'application/octet-stream' ? `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}` : file.type
+        });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
+      // Get signed URL for private bucket
+      const { data: signedData } = await supabase.storage
+        .from('learner-licenses')
+        .createSignedUrl(filePath, 3600);
+
+      const displayUrl = signedData?.signedUrl || '';
+
+      if (side === 'front') {
+        setLicenseFrontUrl(displayUrl);
+      } else {
+        setLicenseBackUrl(displayUrl);
+      }
+
+      // Immediately partial update learner_data with the persistent path or public URL
+      // We store the publicUrl (even if private) in DB, but the Edge function generates the signed one for display
       const { data: { publicUrl } } = supabase.storage
         .from('learner-licenses')
         .getPublicUrl(filePath);
 
-      if (side === 'front') {
-        setLicenseFrontUrl(publicUrl);
-      } else {
-        setLicenseBackUrl(publicUrl);
-      }
-
-      // Immediately partial update learner_data
       const column = side === 'front' ? 'license_front_url' : 'license_back_url';
       const { error: updateError } = await supabase
         .from('learner_data')

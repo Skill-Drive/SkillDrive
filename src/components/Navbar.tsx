@@ -23,10 +23,8 @@ export const Navbar = () => {
         <div className="flex justify-between h-20 items-center">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center gap-2 group">
-              <div className="bg-primary p-2 rounded-lg group-hover:bg-blue-700 transition-colors">
-                <Car className="h-6 w-6 text-white" />
-              </div>
+            <Link to="/" className="flex-shrink-0 flex items-center gap-3 group">
+              <img src="/logo.png" alt="SkillDrive Logo" className="h-12 w-12 object-contain" />
               <span className="font-extrabold text-2xl text-gray-900 tracking-tight">
                 Skill<span className="text-primary">Drive</span>
               </span>
