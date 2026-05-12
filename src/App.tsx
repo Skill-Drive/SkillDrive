@@ -26,9 +26,9 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="sd-shell">
         <Navbar />
-        <main className="flex-grow">
+        <main>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/teach" element={<Teach />} />
@@ -45,11 +45,6 @@ function App() {
             <Route path="/instructor-onboarding" element={<ProtectedRoute><InstructorOnboarding /></ProtectedRoute>} />
           </Routes>
         </main>
-        <footer className="bg-white border-t border-gray-200 py-8">
-          <div className="max-w-7xl mx-auto px-4 text-center text-gray-500">
-            &copy; {new Date().getFullYear()} Skill Drive. All rights reserved.
-          </div>
-        </footer>
       </div>
     </Router>
   );

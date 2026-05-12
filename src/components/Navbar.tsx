@@ -1,15 +1,14 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, UserCircle, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { Icon, Logo } from './Icon';
 
 export const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
-    if (window.confirm("Are you sure you want to sign out?")) {
+    if (window.confirm('Are you sure you want to sign out?')) {
       await signOut();
       navigate('/login');
     }
@@ -17,117 +16,80 @@ export const Navbar = () => {
 
   const isAdmin = profile?.role === 'admin';
 
+  const navItems = [
+    { path: '/', label: 'Home' },
+    { path: '/search', label: 'Find an instructor' },
+    { path: '/teach', label: 'Teach' },
+    ...(user ? [{ path: '/dashboard', label: 'Dashboard' }] : []),
+    ...(isAdmin ? [{ path: '/admin', label: 'Admin' }] : []),
+  ];
+
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="container-main">
-        <div className="flex justify-between h-20 items-center">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center gap-3 group">
-              <img src="/logo.png" alt="SkillDrive Logo" className="h-12 w-12 object-contain" />
-              <span className="font-extrabold text-2xl text-gray-900 tracking-tight">
-                Skill<span className="text-primary">Drive</span>
-              </span>
-            </Link>
-          </div>
+    <header style={{
+      position: 'sticky', top: 0, zIndex: 50,
+      background: 'color-mix(in oklab, var(--paper) 88%, transparent)',
+      backdropFilter: 'blur(10px)',
+      borderBottom: '1px solid var(--line)',
+    }}>
+      <div className="sd-container sd-row sd-acenter sd-between" style={{ height: 72 }}>
+        <Link to="/" className="sd-row sd-acenter sd-gap-3" style={{ textDecoration: 'none', background: 'none', border: 0, padding: 0 }}>
+          <Logo size={36} />
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 26, lineHeight: 1, letterSpacing: '-0.01em', color: 'var(--ink)' }}>
+            Skill<em style={{ color: 'var(--cobalt)', fontStyle: 'italic' }}>Drive</em>
+          </span>
+        </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link to="/search" className="text-gray-600 hover:text-primary font-medium text-sm">
-              Find an Instructor
-            </Link>
-            <Link to="/teach" className="text-gray-600 hover:text-primary font-medium text-sm">
-              Become an Instructor
-            </Link>
-            <div className="h-6 w-px bg-gray-300"></div>
-            {user ? (
-              <>
-                {isAdmin && (
-                  <Link to="/admin" className="text-primary font-black text-sm hover:underline">
-                    Admin Panel
-                  </Link>
-                )}
-                <Link to="/dashboard" className="flex items-center gap-2 text-gray-600 hover:text-primary font-medium text-sm">
-                  <UserCircle className="h-5 w-5" />
-                  My Profile
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium text-sm transition-colors"
-                >
-                  <LogOut className="h-5 w-5" />
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="flex items-center gap-2 text-gray-600 hover:text-primary font-medium text-sm">
-                  <UserCircle className="h-5 w-5" />
-                  Log In
-                </Link>
-                <Link to="/signup" className="btn-secondary py-2 px-4 text-sm">
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
+        <nav className="sd-row sd-gap-2" style={{ background: 'var(--paper-2)', padding: 4, borderRadius: 999, border: '1px solid var(--line)' }}>
+          {navItems.map(item => {
+            const active = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                style={{
+                  padding: '9px 16px',
+                  borderRadius: 999,
+                  border: 0,
+                  background: active ? 'var(--ink)' : 'transparent',
+                  color: active ? 'var(--paper)' : 'var(--ink-2)',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  letterSpacing: '-0.005em',
+                  transition: 'background .15s, color .15s',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
-          {/* Mobile Menu Button */}
-          <div className="flex items-center md:hidden">
+        <div className="sd-row sd-acenter sd-gap-3">
+          {user ? (
             <button
-              type="button"
-              className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={handleSignOut}
+              className="sd-row sd-acenter sd-gap-2"
+              style={{ background: 'transparent', border: '1px solid var(--line)', padding: '6px 14px', borderRadius: 999, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}
             >
-              <Menu className="h-6 w-6" />
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} style={{ width: 28, height: 28, borderRadius: 999, objectFit: 'cover' }} alt="" />
+              ) : (
+                <Icon name="user" size={16} />
+              )}
+              {profile?.full_name?.split(' ')[0] || 'Account'}
             </button>
-          </div>
+          ) : (
+            <Link to="/login" className="sd-btn sd-btn-ghost sd-btn-sm" style={{ textDecoration: 'none' }}>
+              Log in
+            </Link>
+          )}
+          <Link to="/teach" className="sd-btn sd-btn-signal sd-btn-sm" style={{ textDecoration: 'none' }}>
+            Teach with us <Icon name="arrow" size={14}/>
+          </Link>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link to="/search" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-              Find an Instructor
-            </Link>
-            <Link to="/teach" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-              Become an Instructor
-            </Link>
-            {user ? (
-              <>
-                {isAdmin && (
-                  <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-black text-primary hover:bg-blue-50">
-                    Admin Panel
-                  </Link>
-                )}
-                <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-                  My Profile
-                </Link>
-                <button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    handleSignOut();
-                  }}
-                  className="w-full text-left block px-3 py-2 mt-4 font-bold bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-                  Log In
-                </Link>
-                <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 mt-4 text-center font-bold bg-secondary text-secondary-foreground rounded-md">
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </nav>
+    </header>
   );
 };
