@@ -73,16 +73,16 @@ export const BookingModal = ({ instructor, slot, onClose }: BookingModalProps) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm transition-all">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md h-[90vh] sm:h-auto shadow-2xl overflow-hidden animate-in fade-in sm:zoom-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 duration-200 flex flex-col">
+        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
           <h3 className="font-bold text-lg text-gray-900">Complete Booking</h3>
           <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition-colors">
             <X className="h-5 w-5 text-gray-500" />
           </button>
         </div>
 
-        <form onSubmit={handleBooking} className="p-6">
+        <form onSubmit={handleBooking} className="p-6 overflow-y-auto flex-1">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-100">
               <img src={instructor.vehicle.image_url} alt="" className="w-full h-full object-cover" />

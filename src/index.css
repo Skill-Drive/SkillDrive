@@ -166,7 +166,6 @@ input, textarea, select { font-family: inherit; color: inherit; }
 
 /* ---------- responsive layout ---------- */
 .sd-grid-search { display: grid; grid-template-columns: 300px 1fr 1fr; height: calc(100vh - 72px); }
-@import "tailwindcss";
 
 /* ============================================================
    SkillDrive Design System — modernized editorial brand
@@ -214,7 +213,11 @@ html, body, #root {
 
 body { min-height: 100vh; }
 button { font-family: inherit; cursor: pointer; }
-input, textarea, select { font-family: inherit; color: inherit; }
+input, textarea, select { 
+  font-family: inherit; 
+  color: inherit;
+  font-size: 16px; /* Prevent iOS zoom */
+}
 
 /* ---------- scrollbars ---------- */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -243,6 +246,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .sd-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   border: 1px solid var(--ink);
   background: var(--ink);
@@ -254,6 +258,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
   transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
   text-decoration: none;
   cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
 }
 .sd-btn:hover { transform: translateY(-1px); }
 .sd-btn-cobalt { background: var(--cobalt); border-color: var(--cobalt); color: #fff; }
@@ -349,4 +356,10 @@ input, textarea, select { font-family: inherit; color: inherit; }
   /* Navbar */
   .sd-nav-container { padding: 12px 28px !important; }
   .sd-nav-links { order: 3; width: 100%; justify-content: flex-start; padding-bottom: 4px; border: 0 !important; background: transparent !important; }
+  
+  /* Mobile Buttons */
+  .sd-btn:not(.sd-btn-sm) {
+    width: 100%; /* Full width for easy tapping */
+    padding: 14px 20px;
+  }
 }

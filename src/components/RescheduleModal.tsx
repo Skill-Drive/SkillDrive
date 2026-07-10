@@ -47,15 +47,15 @@ export const RescheduleModal = ({ booking, onClose, onRescheduled }: RescheduleM
   const dayOptions = Array.from({ length: 14 }, (_, i) => startOfDay(addDays(new Date(), i + 2)));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm transition-all">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg h-[90vh] sm:h-auto shadow-2xl overflow-hidden flex flex-col animate-in fade-in sm:zoom-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 duration-200">
+        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
           <h3 className="font-bold text-lg text-gray-900">Reschedule lesson</h3>
           <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition-colors">
             <X className="h-5 w-5 text-gray-500" />
           </button>
         </div>
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 overflow-y-auto flex-1">
           <p className="text-sm text-gray-500">
             Current time: <strong>{format(new Date(booking.start_time), "EEE d MMM, h:mm a")}</strong>.
             Free rescheduling up to 24 hours before the lesson.

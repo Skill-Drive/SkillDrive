@@ -92,7 +92,7 @@ export const InstructorProfile = () => {
       {/* Hero band */}
       <section style={{ background: 'var(--ink)', color: 'var(--paper)', padding: '48px 0 64px', position: 'relative', overflow: 'hidden' }}>
         <div className="sd-dots" style={{ position: 'absolute', inset: 0, opacity: 0.08 }}/>
-        <div className="sd-container" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 36, alignItems: 'center', position: 'relative' }}>
+        <div className="sd-container sd-grid-3" style={{ alignItems: 'center', position: 'relative' }}>
           <div style={{ position: 'relative' }}>
             <img src={ins.avatar} style={{ width: 160, height: 160, objectFit: 'cover', borderRadius: 24, border: '3px solid var(--signal)' }} alt={ins.name}/>
             <span className="sd-chip sd-chip-signal" style={{ position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)', fontSize: 11, padding: '4px 10px', whiteSpace: 'nowrap' }}>
@@ -125,7 +125,7 @@ export const InstructorProfile = () => {
         </div>
         {/* Stat strip */}
         <div className="sd-container" style={{ marginTop: 48, position: 'relative' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', borderTop: '1px solid var(--line-strong)', borderBottom: '1px solid var(--line-strong)' }}>
+          <div className="sd-grid-4" style={{ borderTop: '1px solid var(--line-strong)', borderBottom: '1px solid var(--line-strong)' }}>
             {[
               { k: ins.rating, v: `Rating · ${ins.reviews} reviews` },
               { k: ins.lessons.toLocaleString(), v: 'Lessons taught' },
@@ -141,11 +141,11 @@ export const InstructorProfile = () => {
         </div>
       </section>
 
-      <div className="sd-container" style={{ padding: '48px 28px', display: 'grid', gridTemplateColumns: '1fr 380px', gap: 40, alignItems: 'start' }}>
+      <div className="sd-container sd-grid-1-4" style={{ padding: '48px 28px', alignItems: 'start' }}>
         {/* MAIN */}
-        <div>
+        <div style={{ order: 2 }}>
           {/* Tabs */}
-          <div className="sd-row sd-gap-1" style={{ borderBottom: '1px solid var(--line)', marginBottom: 28 }}>
+          <div className="sd-row sd-gap-1" style={{ borderBottom: '1px solid var(--line)', marginBottom: 28, overflowX: 'auto', whiteSpace: 'nowrap' }}>
             {(['about', 'plan', 'reviews', 'vehicle'] as const).map(t => (
               <button key={t} onClick={() => setTab(t)} style={{ padding: '12px 18px', border: 0, background: 'transparent', cursor: 'pointer', fontSize: 14, fontWeight: tab === t ? 700 : 500, color: tab === t ? 'var(--ink)' : 'var(--ink-mute)', borderBottom: tab === t ? '2px solid var(--cobalt)' : '2px solid transparent', marginBottom: -1 }}>
                 {t === 'about' ? 'About' : t === 'plan' ? 'Lesson plan' : t === 'reviews' ? `Reviews (${ins.reviews})` : 'Vehicle'}
@@ -164,7 +164,7 @@ export const InstructorProfile = () => {
                 </div>
               </ContentBlock>
               <ContentBlock title="Pricing">
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                <div className="sd-grid-3">
                   {[
                     { t: 'Single lesson', price: `$${ins.price}`, sub: '60 min · pay after', flag: null },
                     { t: 'Standard 1.5hr', price: `$${Math.round(ins.price * 1.5)}`, sub: '90 min · most popular', flag: 'Recommended' },
@@ -271,8 +271,7 @@ export const InstructorProfile = () => {
           )}
         </div>
 
-        {/* Booking sidebar */}
-        <aside style={{ position: 'sticky', top: 96 }}>
+        <aside style={{ position: 'sticky', top: 90, order: 1 }} className="sd-booking-sidebar">
           <div className="sd-card" style={{ padding: 24, background: 'var(--surface)' }}>
             <div className="sd-row sd-between sd-acenter" style={{ marginBottom: 18 }}>
               <h3 className="sd-display" style={{ margin: 0, fontSize: 28 }}>Pick a time</h3>

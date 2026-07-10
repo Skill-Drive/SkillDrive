@@ -233,7 +233,7 @@ export const Dashboard = () => {
       </div>
 
       {/* Tab Nav */}
-      <div className="sd-row sd-gap-1" style={{ borderBottom: '1px solid var(--line)', marginBottom: 32 }}>
+      <div className="sd-row sd-gap-1" style={{ borderBottom: '1px solid var(--line)', marginBottom: 28, overflowX: 'auto', whiteSpace: 'nowrap' }}>
         {[
           { id: 'overview', label: 'Overview' },
           { id: 'lessons', label: isInstructor ? 'Student lessons' : 'My lessons' },
@@ -258,7 +258,7 @@ export const Dashboard = () => {
       {activeTab === 'overview' && (
         <>
           {/* Top 3 cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: 20, marginBottom: 28 }}>
+          <div className="sd-grid-3" style={{ alignItems: 'start', marginBottom: 28 }}>
             {/* Readiness card */}
             <div className="sd-card" style={{ padding: 24, background: 'var(--ink)', color: 'var(--paper)', border: '1px solid var(--ink)' }}>
               <div className="sd-row sd-between sd-acenter">
@@ -304,8 +304,8 @@ export const Dashboard = () => {
           </div>
 
           {/* Two columns */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 28 }}>
-            <section>
+          <div className="sd-grid-3">
+            <section style={{ gridColumn: 'span 2' }}>
               <div className="sd-row sd-between sd-acenter" style={{ marginBottom: 14 }}>
                 <h2 className="sd-display" style={{ fontSize: 32, margin: 0 }}>Upcoming lessons</h2>
                 <button onClick={() => setActiveTab('lessons')} className="sd-btn sd-btn-ghost sd-btn-sm">View all <Icon name="arrow" size={13}/></button>
