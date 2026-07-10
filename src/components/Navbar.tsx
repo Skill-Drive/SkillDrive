@@ -31,16 +31,17 @@ export const Navbar = () => {
       backdropFilter: 'blur(10px)',
       borderBottom: '1px solid var(--line)',
     }}>
-      <div className="sd-container sd-row sd-acenter sd-between" style={{ height: 72 }}>
-        <Link to="/" className="sd-row sd-acenter sd-gap-3" style={{ textDecoration: 'none', background: 'none', border: 0, padding: 0 }}>
-          <Logo size={36} />
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 26, lineHeight: 1, letterSpacing: '-0.01em', color: 'var(--ink)' }}>
-            Skill<em style={{ color: 'var(--cobalt)', fontStyle: 'italic' }}>Drive</em>
-          </span>
-        </Link>
+      <div className="sd-container sd-nav-container" style={{ minHeight: 72 }}>
+        <div className="sd-row sd-acenter sd-between" style={{ width: '100%', flexWrap: 'wrap', gap: 12 }}>
+          <Link to="/" className="sd-row sd-acenter sd-gap-2" style={{ textDecoration: 'none', background: 'none', border: 0, padding: 0 }}>
+            <Logo size={32} />
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, lineHeight: 1, letterSpacing: '-0.01em', color: 'var(--ink)' }}>
+              Skill<em style={{ color: 'var(--cobalt)', fontStyle: 'italic' }}>Drive</em>
+            </span>
+          </Link>
 
-        <nav className="sd-row sd-gap-2" style={{ background: 'var(--paper-2)', padding: 4, borderRadius: 999, border: '1px solid var(--line)' }}>
-          {navItems.map(item => {
+          <nav className="sd-row sd-nav-links sd-gap-1" style={{ background: 'var(--paper-2)', padding: 4, borderRadius: 999, border: '1px solid var(--line)', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+            {navItems.map(item => {
             const active = location.pathname === item.path;
             return (
               <Link
@@ -64,10 +65,10 @@ export const Navbar = () => {
               </Link>
             );
           })}
-        </nav>
+          </nav>
 
-        <div className="sd-row sd-acenter sd-gap-3">
-          {user ? (
+          <div className="sd-row sd-acenter sd-gap-2 sd-nav-actions">
+            {user ? (
             <button
               onClick={handleSignOut}
               className="sd-row sd-acenter sd-gap-2"
@@ -85,9 +86,10 @@ export const Navbar = () => {
               Log in
             </Link>
           )}
-          <Link to="/teach" className="sd-btn sd-btn-signal sd-btn-sm" style={{ textDecoration: 'none' }}>
-            Teach with us <Icon name="arrow" size={14}/>
-          </Link>
+            <Link to="/teach" className="sd-btn sd-btn-signal sd-btn-sm" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              Teach with us <Icon name="arrow" size={14}/>
+            </Link>
+          </div>
         </div>
       </div>
     </header>
