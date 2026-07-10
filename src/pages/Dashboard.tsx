@@ -219,7 +219,7 @@ export const Dashboard = () => {
   return (
     <div className="sd-screen sd-container" style={{ padding: '40px 28px 80px' }}>
       {/* Header */}
-      <div className="sd-row sd-between sd-acenter" style={{ marginBottom: 32 }}>
+      <div className="sd-row sd-between sd-acenter" style={{ marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <div className="sd-eyebrow" style={{ marginBottom: 8 }}>// Welcome back, {displayName}</div>
           <h1 className="sd-display" style={{ fontSize: 64, margin: 0, lineHeight: 1 }}>
@@ -320,30 +320,32 @@ export const Dashboard = () => {
               ) : (
                 <div className="sd-col sd-gap-2">
                   {upcomingBookings.slice(0, 3).map((b, i) => (
-                    <article key={b.id} className="sd-card" style={{ padding: 0, overflow: 'hidden', display: 'grid', gridTemplateColumns: 'auto 1fr auto' }}>
-                      <div style={{ background: i === 0 ? 'var(--cobalt)' : 'var(--paper-2)', color: i === 0 ? '#fff' : 'var(--ink)', padding: '20px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 100 }}>
-                        <div style={{ fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', opacity: .7 }}>{format(parseISO(b.start_time), 'MMM')}</div>
-                        <div className="sd-display" style={{ fontSize: 44, lineHeight: 1, marginTop: 4 }}>{format(parseISO(b.start_time), 'd')}</div>
-                        <div className="sd-mono" style={{ fontSize: 12, marginTop: 2 }}>{format(parseISO(b.start_time), 'h:mm a')}</div>
-                      </div>
-                      <div style={{ padding: 20 }}>
-                        <div className="sd-row sd-acenter sd-gap-2" style={{ marginBottom: 4 }}>
-                          <span style={{ fontWeight: 700, fontSize: 16 }}>{b.user_is_learner ? `Lesson with ${b.other_party?.full_name || 'instructor'}` : `Student: ${b.other_party?.full_name || 'learner'}`}</span>
-                          {b.status === 'confirmed' ? (
-                            <span className="sd-chip sd-chip-lime" style={{ fontSize: 10 }}><Icon name="check" size={10}/> Confirmed</span>
-                          ) : (
-                            <span className="sd-chip sd-chip-signal" style={{ fontSize: 10 }}>Awaiting confirm</span>
+                    <article key={b.id} className="sd-card" style={{ padding: 0, overflow: 'hidden' }}>
+                      <div className="flex flex-col sm:flex-row">
+                        <div style={{ background: i === 0 ? 'var(--cobalt)' : 'var(--paper-2)', color: i === 0 ? '#fff' : 'var(--ink)', padding: '16px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 100, textAlign: 'center' }}>
+                          <div style={{ fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', opacity: .7 }}>{format(parseISO(b.start_time), 'MMM')}</div>
+                          <div className="sd-display" style={{ fontSize: 44, lineHeight: 1, marginTop: 4 }}>{format(parseISO(b.start_time), 'd')}</div>
+                          <div className="sd-mono" style={{ fontSize: 12, marginTop: 2 }}>{format(parseISO(b.start_time), 'h:mm a')}</div>
+                        </div>
+                        <div style={{ padding: 20 }} className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span style={{ fontWeight: 700, fontSize: 16 }}>{b.user_is_learner ? `Lesson with ${b.other_party?.full_name || 'instructor'}` : `Student: ${b.other_party?.full_name || 'learner'}`}</span>
+                            {b.status === 'confirmed' ? (
+                              <span className="sd-chip sd-chip-lime" style={{ fontSize: 10 }}><Icon name="check" size={10}/> Confirmed</span>
+                            ) : (
+                              <span className="sd-chip sd-chip-signal" style={{ fontSize: 10 }}>Awaiting confirm</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 sd-muted text-sm">
+                            <Icon name="pin" size={14}/> <span>{b.pickup_address}</span>
+                          </div>
+                        </div>
+                        <div className="flex sm:flex-col items-center justify-end sm:justify-center p-4 sm:p-5 gap-2 border-t sm:border-t-0 border-gray-100 bg-gray-50 sm:bg-transparent">
+                          {isReschedulable(b.start_time) && (
+                            <button onClick={() => setReschedulingBooking(b)} className="sd-btn sd-btn-ghost sd-btn-sm w-full sm:w-auto justify-center">Reschedule</button>
                           )}
+                          <button onClick={() => handleCancel(b)} className="sd-btn sd-btn-ghost sd-btn-sm w-full sm:w-auto justify-center">Cancel</button>
                         </div>
-                        <div className="sd-row sd-gap-3 sd-muted" style={{ fontSize: 13 }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Icon name="pin" size={12}/> {b.pickup_address}</span>
-                        </div>
-                      </div>
-                      <div style={{ padding: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {isReschedulable(b.start_time) && (
-                          <button onClick={() => setReschedulingBooking(b)} className="sd-btn sd-btn-ghost sd-btn-sm">Reschedule</button>
-                        )}
-                        <button onClick={() => handleCancel(b)} className="sd-btn sd-btn-ghost sd-btn-sm">Cancel</button>
                       </div>
                     </article>
                   ))}
@@ -433,32 +435,34 @@ export const Dashboard = () => {
             ) : (
               <div className="sd-col sd-gap-3">
                 {upcomingBookings.map((b) => (
-                  <article key={b.id} className="sd-card" style={{ padding: 0, overflow: 'hidden', display: 'grid', gridTemplateColumns: 'auto 1fr auto' }}>
-                    <div style={{ background: 'var(--cobalt)', color: '#fff', padding: '20px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 100 }}>
-                      <div style={{ fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', opacity: .7 }}>{format(parseISO(b.start_time), 'MMM')}</div>
-                      <div className="sd-display" style={{ fontSize: 44, lineHeight: 1, marginTop: 4 }}>{format(parseISO(b.start_time), 'd')}</div>
-                      <div className="sd-mono" style={{ fontSize: 12, marginTop: 2 }}>{format(parseISO(b.start_time), 'h:mm a')}</div>
-                    </div>
-                    <div style={{ padding: 20 }}>
-                      <div className="sd-row sd-acenter sd-gap-2" style={{ marginBottom: 4 }}>
-                        <span style={{ fontWeight: 700, fontSize: 16 }}>{b.user_is_learner ? `Lesson with ${b.other_party?.full_name || 'instructor'}` : `Student: ${b.other_party?.full_name || 'learner'}`}</span>
-                        {b.status === 'confirmed' ? (
-                          <span className="sd-chip sd-chip-lime" style={{ fontSize: 10 }}><Icon name="check" size={10}/> Confirmed</span>
-                        ) : (
-                          <span className="sd-chip sd-chip-signal" style={{ fontSize: 10 }}>{b.status}</span>
+                  <article key={b.id} className="sd-card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div className="flex flex-col sm:flex-row">
+                      <div style={{ background: 'var(--cobalt)', color: '#fff', padding: '16px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 100, textAlign: 'center' }}>
+                        <div style={{ fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', opacity: .7 }}>{format(parseISO(b.start_time), 'MMM')}</div>
+                        <div className="sd-display" style={{ fontSize: 44, lineHeight: 1, marginTop: 4 }}>{format(parseISO(b.start_time), 'd')}</div>
+                        <div className="sd-mono" style={{ fontSize: 12, marginTop: 2 }}>{format(parseISO(b.start_time), 'h:mm a')}</div>
+                      </div>
+                      <div style={{ padding: 20 }} className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span style={{ fontWeight: 700, fontSize: 16 }}>{b.user_is_learner ? `Lesson with ${b.other_party?.full_name || 'instructor'}` : `Student: ${b.other_party?.full_name || 'learner'}`}</span>
+                          {b.status === 'confirmed' ? (
+                            <span className="sd-chip sd-chip-lime" style={{ fontSize: 10 }}><Icon name="check" size={10}/> Confirmed</span>
+                          ) : (
+                            <span className="sd-chip sd-chip-signal" style={{ fontSize: 10 }}>{b.status}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 sd-muted text-sm">
+                          <Icon name="pin" size={14}/> <span>{b.pickup_address}</span>
+                        </div>
+                      </div>
+                      <div className="flex sm:flex-col items-center justify-end sm:justify-center p-4 sm:p-5 gap-2 border-t sm:border-t-0 border-gray-100 bg-gray-50 sm:bg-transparent">
+                        {isReschedulable(b.start_time) && (
+                          <button onClick={() => setReschedulingBooking(b)} className="sd-btn sd-btn-ghost sd-btn-sm w-full sm:w-auto justify-center">Reschedule</button>
                         )}
-                      </div>
-                      <div className="sd-row sd-gap-3 sd-muted" style={{ fontSize: 13 }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Icon name="pin" size={12}/> {b.pickup_address}</span>
+                        <button onClick={() => handleCancel(b)} className="sd-btn sd-btn-ghost sd-btn-sm w-full sm:w-auto justify-center" style={{ color: 'var(--coral)' }}>Cancel</button>
                       </div>
                     </div>
-                    <div style={{ padding: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {isReschedulable(b.start_time) && (
-                        <button onClick={() => setReschedulingBooking(b)} className="sd-btn sd-btn-ghost sd-btn-sm">Reschedule</button>
-                      )}
-                      <button onClick={() => handleCancel(b)} className="sd-btn sd-btn-ghost sd-btn-sm" style={{ color: 'var(--coral)' }}>Cancel</button>
-                    </div>
-                    <div style={{ gridColumn: '1 / -1' }}>
+                    <div>
                       <LessonTracker booking={b} />
                     </div>
                   </article>
@@ -472,17 +476,17 @@ export const Dashboard = () => {
               <h2 className="sd-display" style={{ fontSize: 36, margin: '0 0 20px' }}>History</h2>
               <div className="sd-card" style={{ padding: 0, overflow: 'hidden' }}>
                 {pastBookings.map((b, i) => (
-                  <div key={b.id} className="sd-row sd-between sd-acenter" style={{ padding: '16px 20px', borderTop: i === 0 ? 0 : '1px solid var(--line)' }}>
-                    <div className="sd-row sd-acenter sd-gap-4">
+                  <div key={b.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ padding: '16px 20px', borderTop: i === 0 ? 0 : '1px solid var(--line)' }}>
+                    <div className="flex items-center gap-4">
                       <span className="sd-mono sd-muted" style={{ fontSize: 12, width: 100 }}>{format(parseISO(b.start_time), 'MMM d, yyyy')}</span>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>Driving Lesson</div>
                         <div className="sd-muted" style={{ fontSize: 12 }}>{b.other_party?.full_name}</div>
                       </div>
                     </div>
-                    <div className="sd-row sd-acenter sd-gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {isInstructor && b.status === 'confirmed' && new Date(b.end_time) < new Date() && (
-                        <button onClick={() => handleComplete(b.id)} className="sd-btn sd-btn-cobalt sd-btn-sm">Mark completed & get paid</button>
+                        <button onClick={() => handleComplete(b.id)} className="sd-btn sd-btn-cobalt sd-btn-sm w-full sm:w-auto justify-center">Mark completed & get paid</button>
                       )}
                       <span className="sd-chip" style={{ fontSize: 11 }}>{b.status}</span>
                     </div>
@@ -509,7 +513,7 @@ export const Dashboard = () => {
       {/* PROFILE TAB */}
       {activeTab === 'profile' && (
         <div style={{ maxWidth: 860 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
             <div className="sd-col sd-gap-6">
               {/* Avatar */}
               <div className="sd-card" style={{ padding: 24 }}>
