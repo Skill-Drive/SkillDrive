@@ -13,14 +13,18 @@ import {
     Loader2
 } from 'lucide-react';
 import { supabase } from '../services/supabase';
+import { platformService } from '../services/platformService';
+import type { AuditLog, SupportTicket, TicketStatus } from '../types';
 import { format } from 'date-fns';
 
-type AdminTab = 'overview' | 'users' | 'instructors' | 'bookings';
+type AdminTab = 'overview' | 'users' | 'instructors' | 'bookings' | 'support' | 'audit';
 
 export const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState<AdminTab>('overview');
     const [stats, setStats] = useState<any>(null);
     const [users, setUsers] = useState<any[]>([]);
+    const [tickets, setTickets] = useState<SupportTicket[]>([]);
+    const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedInstructor, setSelectedInstructor] = useState<any>(null);
@@ -55,6 +59,10 @@ export const AdminDashboard = () => {
             });
             if (userError) throw userError;
             setUsers(userData);
+
+            // 3. Support tickets + audit trail (RLS-guarded: admin only)
+            platformService.getAllTickets().then(setTickets).catch(() => {});
+            platformService.getAuditLogs().then(setAuditLogs).catch(() => {});
 
         } catch (err: any) {
             console.error('Failed to fetch admin data:', err);
@@ -106,7 +114,7 @@ export const AdminDashboard = () => {
 
                     {/* Tabs */}
                     <div className="flex gap-8 mt-8 border-b border-gray-100">
-                        {['overview', 'users', 'instructors', 'bookings'].map((tab) => (
+                        {['overview', 'users', 'instructors', 'bookings', 'support', 'audit'].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab as AdminTab)}
@@ -347,6 +355,93 @@ export const AdminDashboard = () => {
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-gray-400">
                         <Calendar className="h-16 w-16 mx-auto mb-4 opacity-20" />
                         <p className="font-medium">Global bookings log visibility coming soon.</p>
+                    </div>
+                )}
+
+                {activeTab === 'support' && (
+                    <div className="space-y-4">
+                        {tickets.length === 0 ? (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-gray-400">
+                                <p className="font-medium">No support tickets.</p>
+                            </div>
+                        ) : tickets.map((t) => (
+                            <div key={t.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="font-bold text-gray-900">{t.subject}</span>
+                                            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-indigo-100 text-indigo-700">{t.category}</span>
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            {t.profiles?.full_name} ({t.profiles?.email}, {t.profiles?.role}) · {format(new Date(t.created_at), 'MMM d, yyyy h:mm a')}
+                                            {t.booking_id && <> · booking {t.booking_id.slice(0, 8)}…</>}
+                                        </p>
+                                        <p className="text-sm text-gray-700 mt-3 whitespace-pre-wrap">{t.message}</p>
+                                    </div>
+                                    <select
+                                        value={t.status}
+                                        onChange={async (e) => {
+                                            const status = e.target.value as TicketStatus;
+                                            try {
+                                                await platformService.updateTicket(t.id, { status });
+                                                setTickets((prev) => prev.map((x) => x.id === t.id ? { ...x, status } : x));
+                                            } catch (err: any) { alert(err.message); }
+                                        }}
+                                        className="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 shrink-0"
+                                    >
+                                        <option value="open">Open</option>
+                                        <option value="in_progress">In progress</option>
+                                        <option value="resolved">Resolved</option>
+                                        <option value="closed">Closed</option>
+                                    </select>
+                                </div>
+                                <div className="mt-4 flex gap-2">
+                                    <input
+                                        defaultValue={t.admin_notes ?? ''}
+                                        placeholder="Reply / internal note shown to the user…"
+                                        className="flex-grow text-sm px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg"
+                                        onBlur={async (e) => {
+                                            const admin_notes = e.target.value;
+                                            if (admin_notes === (t.admin_notes ?? '')) return;
+                                            try {
+                                                await platformService.updateTicket(t.id, { admin_notes });
+                                                setTickets((prev) => prev.map((x) => x.id === t.id ? { ...x, admin_notes } : x));
+                                            } catch (err: any) { alert(err.message); }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {activeTab === 'audit' && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    <tr>
+                                        <th className="px-6 py-4">When</th>
+                                        <th className="px-6 py-4">Action</th>
+                                        <th className="px-6 py-4">Entity</th>
+                                        <th className="px-6 py-4">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {auditLogs.map((log) => (
+                                        <tr key={log.id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-3 text-xs text-gray-500 whitespace-nowrap">{format(new Date(log.created_at), 'MMM d, HH:mm:ss')}</td>
+                                            <td className="px-6 py-3 text-sm font-medium text-gray-900">{log.action.replace(/_/g, ' ')}</td>
+                                            <td className="px-6 py-3 text-xs text-gray-500">{log.entity_type}{log.entity_id ? ` · ${log.entity_id.slice(0, 8)}…` : ''}</td>
+                                            <td className="px-6 py-3 text-xs text-gray-500 font-mono max-w-md truncate">{JSON.stringify(log.details)}</td>
+                                        </tr>
+                                    ))}
+                                    {auditLogs.length === 0 && (
+                                        <tr><td colSpan={4} className="px-6 py-10 text-center text-gray-400 text-sm">No audit events recorded yet.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
             </div>

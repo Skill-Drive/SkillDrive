@@ -37,8 +37,9 @@ const MOCK_INSTRUCTORS: Instructor[] = [
   { id: 'joel', name: 'Joel Park', tagline: 'Early-bird lessons before work.', location: 'Chatswood, NSW', transmission: 'Auto', rating: 4.93, reviews: 156, price: 92, lessons: 720, passRate: 90, next: 'Tomorrow · 6:00 am', tags: ['Early bird', 'EV'], languages: ['English', 'Korean'], verified: true, avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=480&q=80' },
 ];
 
-function normalise(i: Instructor): Required<Pick<Instructor, 'name'|'avatar'|'transmission'|'rating'|'reviews'|'price'|'lessons'|'passRate'|'next'|'tags'|'languages'|'verified'|'location'>> {
+function normalise(i: Instructor): Required<Pick<Instructor, 'name'|'avatar'|'transmission'|'rating'|'reviews'|'price'|'lessons'|'passRate'|'next'|'tags'|'languages'|'verified'|'location'|'tagline'>> {
   return {
+    tagline: i.tagline || '',
     name: i.full_name || i.name || 'Instructor',
     avatar: i.avatar_url || i.avatar || 'https://i.pravatar.cc/480',
     transmission: i.transmission || (typeof i.vehicle === 'object' ? i.vehicle?.transmission : '') || 'Auto',
@@ -61,15 +62,21 @@ export const SearchResults = () => {
   const postcode = searchParams.get('postcode') || '2010';
 
   const [dbInstructors, setDbInstructors] = useState<Instructor[]>([]);
-  const [filters, setFilters] = useState({ transmission: ['Auto', 'Manual'], maxPrice: 100, minRating: 4.5, tags: [] as string[] });
+  const [filters, setFilters] = useState({ transmission: ['Auto', 'Manual'], maxPrice: 100, minRating: 4.5, dualControl: false, hasTestPackage: false, tags: [] as string[] });
   const [sort, setSort] = useState('recommended');
   const [hovered, setHovered] = useState<string | null>(null);
 
   useEffect(() => {
-    bookingService.searchInstructors({ transmission: filters.transmission, maxPrice: filters.maxPrice })
+    bookingService.searchInstructors({
+      transmission: filters.transmission,
+      maxPrice: filters.maxPrice,
+      minRating: filters.minRating,
+      dualControl: filters.dualControl,
+      hasTestPackage: filters.hasTestPackage,
+    }, postcode)
       .then(data => setDbInstructors(data || []))
       .catch(() => {});
-  }, [filters.transmission, filters.maxPrice]);
+  }, [filters.transmission, filters.maxPrice, filters.minRating, filters.dualControl, filters.hasTestPackage, postcode]);
 
   const source = dbInstructors.length > 0 ? dbInstructors : MOCK_INSTRUCTORS;
 
@@ -128,6 +135,23 @@ export const SearchResults = () => {
                 <Icon name="star" size={11}/> {r}+
               </button>
             ))}
+          </div>
+        </FilterSection>
+
+        <FilterSection title="Vehicle & packages">
+          <div className="sd-col sd-gap-2">
+            <label className="sd-row sd-acenter sd-gap-2" style={{ fontSize: 13, cursor: 'pointer' }}>
+              <input type="checkbox" checked={filters.dualControl}
+                onChange={e => setFilters(f => ({ ...f, dualControl: e.target.checked }))}
+                style={{ accentColor: 'var(--cobalt)' }} />
+              Dual-control vehicle only
+            </label>
+            <label className="sd-row sd-acenter sd-gap-2" style={{ fontSize: 13, cursor: 'pointer' }}>
+              <input type="checkbox" checked={filters.hasTestPackage}
+                onChange={e => setFilters(f => ({ ...f, hasTestPackage: e.target.checked }))}
+                style={{ accentColor: 'var(--cobalt)' }} />
+              Offers driving test package
+            </label>
           </div>
         </FilterSection>
 

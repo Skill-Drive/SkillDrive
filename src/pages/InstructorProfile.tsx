@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { bookingService } from '../services/bookingService';
-import { BookingModal } from '../components/BookingModal';
 import { Icon } from '../components/Icon';
 import type { InstructorProfile as IInstructorProfile } from '../types';
 
@@ -46,7 +45,6 @@ export const InstructorProfile = () => {
   const [bookingStep, setBookingStep] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState(2);
-  const [isLegacyModalOpen, setIsLegacyModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -71,7 +69,7 @@ export const InstructorProfile = () => {
     lessons: mock.lessons,
     passRate: mock.passRate,
     transmission: dbInstructor?.vehicle?.transmission || mock.transmission,
-    vehicle: dbInstructor ? `${dbInstructor.vehicle?.make || ''} ${dbInstructor.vehicle?.model || ''}`.trim() || mock.vehicle : mock.vehicle,
+    vehicle: dbInstructor ? (dbInstructor.vehicle?.model || mock.vehicle) : mock.vehicle,
     suburbs: dbInstructor?.suburbs_covered || mock.suburbs,
   };
 
@@ -435,14 +433,6 @@ export const InstructorProfile = () => {
         </div>
       )}
 
-      {/* Legacy BookingModal (for Supabase-backed bookings) */}
-      {dbInstructor && isLegacyModalOpen && (
-        <BookingModal
-          instructor={dbInstructor}
-          isOpen={isLegacyModalOpen}
-          onClose={() => setIsLegacyModalOpen(false)}
-        />
-      )}
     </div>
   );
 };

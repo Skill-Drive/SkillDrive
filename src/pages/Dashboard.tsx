@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { format, parseISO, isFuture } from 'date-fns';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Loader2, Camera, XCircle } from 'lucide-react';
+import { Loader2, Camera } from 'lucide-react';
 import { bookingService } from '../services/bookingService';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
 import { Icon } from '../components/Icon';
+import { LogbookCard } from '../components/LogbookCard';
+import { SupportPanel } from '../components/SupportPanel';
+import { RescheduleModal } from '../components/RescheduleModal';
+import { AvailabilityEditor } from '../components/AvailabilityEditor';
+import { LessonTracker } from '../components/LessonTracker';
+import { platformService } from '../services/platformService';
+import { cancellationMessage, isReschedulable } from '../lib/policy';
 import type { Booking } from '../types';
 
 const CURRICULUM = [
@@ -42,7 +49,8 @@ export const Dashboard = () => {
   const { user, profile, initialize } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'lessons'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'lessons' | 'support'>('overview');
+  const [reschedulingBooking, setReschedulingBooking] = useState<Booking | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -125,12 +133,22 @@ export const Dashboard = () => {
     }
   }, [profile]);
 
-  const handleCancel = async (bookingId: string) => {
-    if (window.confirm('Are you sure you want to cancel this lesson?')) {
+  const handleCancel = async (booking: Booking) => {
+    const policy = cancellationMessage(booking.start_time);
+    if (window.confirm(`Are you sure you want to cancel this lesson?\n\n${policy}`)) {
       try {
-        await bookingService.cancelBooking(bookingId);
+        await bookingService.cancelBooking(booking.id);
         fetchBookings();
       } catch { alert('Failed to cancel booking'); }
+    }
+  };
+
+  const handleComplete = async (bookingId: string) => {
+    if (window.confirm('Mark this lesson as completed? Your payout (minus platform fee) will be transferred to your Stripe account.')) {
+      try {
+        await platformService.completeLesson(bookingId);
+        fetchBookings();
+      } catch (err: any) { alert(err.message || 'Failed to complete lesson'); }
     }
   };
 
@@ -219,9 +237,10 @@ export const Dashboard = () => {
         {[
           { id: 'overview', label: 'Overview' },
           { id: 'lessons', label: isInstructor ? 'Student lessons' : 'My lessons' },
+          { id: 'support', label: 'Help & support' },
           { id: 'profile', label: 'Profile & settings' },
         ].map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id as 'overview' | 'profile' | 'lessons')} style={{ padding: '12px 18px', border: 0, background: 'transparent', cursor: 'pointer', fontSize: 14, fontWeight: activeTab === t.id ? 700 : 500, color: activeTab === t.id ? 'var(--ink)' : 'var(--ink-mute)', borderBottom: activeTab === t.id ? '2px solid var(--cobalt)' : '2px solid transparent', marginBottom: -1 }}>
+          <button key={t.id} onClick={() => setActiveTab(t.id as 'overview' | 'profile' | 'lessons' | 'support')} style={{ padding: '12px 18px', border: 0, background: 'transparent', cursor: 'pointer', fontSize: 14, fontWeight: activeTab === t.id ? 700 : 500, color: activeTab === t.id ? 'var(--ink)' : 'var(--ink-mute)', borderBottom: activeTab === t.id ? '2px solid var(--cobalt)' : '2px solid transparent', marginBottom: -1 }}>
             {t.label}
           </button>
         ))}
@@ -267,23 +286,8 @@ export const Dashboard = () => {
               </div>
             </div>
 
-            {/* Logbook card */}
-            <div className="sd-card" style={{ padding: 24 }}>
-              <div className="sd-eyebrow">// Logbook</div>
-              <h2 className="sd-display" style={{ fontSize: 56, margin: '10px 0 0', lineHeight: 1 }}>
-                18<span style={{ color: 'var(--ink-soft)', fontSize: 28 }}>/32 hrs</span>
-              </h2>
-              <div className="sd-muted" style={{ fontSize: 12, marginBottom: 18 }}>NSW Learners Log · 14 hrs to go</div>
-              <svg width="100%" viewBox="0 0 100 8" preserveAspectRatio="none" style={{ height: 14, marginBottom: 14 }}>
-                <rect x="0" y="0" width="100" height="8" fill="var(--paper-2)" rx="4"/>
-                <rect x="0" y="0" width="56" height="8" fill="var(--cobalt)" rx="4"/>
-              </svg>
-              <div className="sd-row sd-gap-2" style={{ flexWrap: 'wrap' }}>
-                <span className="sd-chip"><Icon name="clock" size={11}/> Day: 12</span>
-                <span className="sd-chip"><Icon name="clock" size={11}/> Night: 4</span>
-                <span className="sd-chip"><Icon name="clock" size={11}/> Highway: 2</span>
-              </div>
-            </div>
+            {/* Logbook card — real completed lessons with NSW 3-for-1 credit */}
+            {user && <LogbookCard learnerId={user.id} />}
 
             {/* Test date card */}
             <div className="sd-card" style={{ padding: 24, background: 'var(--signal)', border: '1px solid var(--ink)' }}>
@@ -336,7 +340,10 @@ export const Dashboard = () => {
                         </div>
                       </div>
                       <div style={{ padding: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <button onClick={() => handleCancel(b.id)} className="sd-btn sd-btn-ghost sd-btn-sm">Cancel</button>
+                        {isReschedulable(b.start_time) && (
+                          <button onClick={() => setReschedulingBooking(b)} className="sd-btn sd-btn-ghost sd-btn-sm">Reschedule</button>
+                        )}
+                        <button onClick={() => handleCancel(b)} className="sd-btn sd-btn-ghost sd-btn-sm">Cancel</button>
                       </div>
                     </article>
                   ))}
@@ -446,7 +453,13 @@ export const Dashboard = () => {
                       </div>
                     </div>
                     <div style={{ padding: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <button onClick={() => handleCancel(b.id)} className="sd-btn sd-btn-ghost sd-btn-sm" style={{ color: 'var(--coral)' }}>Cancel</button>
+                      {isReschedulable(b.start_time) && (
+                        <button onClick={() => setReschedulingBooking(b)} className="sd-btn sd-btn-ghost sd-btn-sm">Reschedule</button>
+                      )}
+                      <button onClick={() => handleCancel(b)} className="sd-btn sd-btn-ghost sd-btn-sm" style={{ color: 'var(--coral)' }}>Cancel</button>
+                    </div>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <LessonTracker booking={b} />
                     </div>
                   </article>
                 ))}
@@ -467,13 +480,30 @@ export const Dashboard = () => {
                         <div className="sd-muted" style={{ fontSize: 12 }}>{b.other_party?.full_name}</div>
                       </div>
                     </div>
-                    <span className="sd-chip" style={{ fontSize: 11 }}>{b.status}</span>
+                    <div className="sd-row sd-acenter sd-gap-2">
+                      {isInstructor && b.status === 'confirmed' && new Date(b.end_time) < new Date() && (
+                        <button onClick={() => handleComplete(b.id)} className="sd-btn sd-btn-cobalt sd-btn-sm">Mark completed & get paid</button>
+                      )}
+                      <span className="sd-chip" style={{ fontSize: 11 }}>{b.status}</span>
+                    </div>
                   </div>
                 ))}
               </div>
             </section>
           )}
         </div>
+      )}
+
+      {/* SUPPORT TAB */}
+      {activeTab === 'support' && <SupportPanel bookings={bookings} />}
+
+      {/* Reschedule modal */}
+      {reschedulingBooking && (
+        <RescheduleModal
+          booking={reschedulingBooking}
+          onClose={() => setReschedulingBooking(null)}
+          onRescheduled={fetchBookings}
+        />
       )}
 
       {/* PROFILE TAB */}
@@ -618,6 +648,13 @@ export const Dashboard = () => {
               )}
             </div>
           </div>
+
+          {/* Instructor booking calendar */}
+          {isInstructor && user && (
+            <div style={{ marginTop: 28 }}>
+              <AvailabilityEditor instructorId={user.id} />
+            </div>
+          )}
         </div>
       )}
     </div>

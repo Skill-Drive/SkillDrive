@@ -1,82 +1,78 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
-import { setHours, setMinutes, isSameDay } from "npm:date-fns@2.30.0"; // Requires deno npm: specifier
-
-const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 
 serve(async (req) => {
-    if (req.method === "OPTIONS") {
-        return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+    );
+
+    const { instructorId, dateIso } = await req.json();
+    if (!instructorId || !dateIso) {
+      return errorResponse("instructorId and dateIso are required");
     }
 
-    try {
-        const supabaseClient = createClient(
-            Deno.env.get("SUPABASE_URL") ?? "",
-            Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-        );
+    const requestedDate = new Date(dateIso);
+    const dayOfWeek = requestedDate.getDay(); // 0 = Sunday
 
-        const { instructorId, dateIso } = await req.json();
-        if (!instructorId || !dateIso) throw new Error("instructorId and dateIso are required");
+    // Existing bookings for the day (anything not cancelled blocks the slot)
+    const dayStart = new Date(requestedDate);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(requestedDate);
+    dayEnd.setHours(23, 59, 59, 999);
 
-        const requestedDate = new Date(dateIso);
+    const { data: bookings, error: bookingsError } = await supabase
+      .from("bookings")
+      .select("start_time, end_time")
+      .eq("instructor_id", instructorId)
+      .neq("status", "cancelled")
+      .gte("start_time", dayStart.toISOString())
+      .lte("start_time", dayEnd.toISOString());
+    if (bookingsError) throw bookingsError;
 
-        const { data: bookings, error } = await supabaseClient
-            .from("bookings")
-            .select("*")
-            .eq("instructor_id", instructorId)
-            .neq("status", "cancelled");
+    // Instructor's recurring weekly availability windows for this weekday.
+    const { data: windows, error: availError } = await supabase
+      .from("availability_slots")
+      .select("start_time, end_time")
+      .eq("instructor_id", instructorId)
+      .eq("day_of_week", dayOfWeek)
+      .eq("is_active", true);
+    if (availError) throw availError;
 
-        if (error) throw error;
+    // Default to 9–17 when the instructor hasn't set a calendar yet.
+    const ranges = windows && windows.length > 0
+      ? windows.map((w) => ({
+        start: parseInt(w.start_time.split(":")[0], 10),
+        end: parseInt(w.end_time.split(":")[0], 10),
+      }))
+      : [{ start: 9, end: 17 }];
 
-        const slots: string[] = []; // return ISO strings back to client
+    const slots: string[] = [];
+    for (const range of ranges) {
+      for (let hour = range.start; hour < range.end; hour++) {
+        const slot = new Date(requestedDate);
+        slot.setHours(hour, 0, 0, 0);
+        const slotEnd = new Date(slot.getTime() + 60 * 60 * 1000);
 
-        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        const dayOfWeek = days[requestedDate.getDay()];
+        if (slot < new Date()) continue;
 
-        const { data: availability, error: availError } = await supabaseClient
-            .from("instructor_availability")
-            .select("start_time, end_time")
-            .eq("instructor_id", instructorId)
-            .eq("day_of_week", dayOfWeek)
-            .eq("is_active", true)
-            .single();
-
-        let startHour = 9;
-        let endHour = 17;
-
-        if (!availError && availability) {
-            startHour = parseInt(availability.start_time.split(':')[0], 10);
-            endHour = parseInt(availability.end_time.split(':')[0], 10);
-        } else if (availError && availError.code !== 'PGRST116') {
-            console.error("Availability fetch error:", availError);
-        }
-
-        for (let i = startHour; i < endHour; i++) {
-            const slot = setMinutes(setHours(requestedDate, i), 0);
-
-            if (slot < new Date()) continue;
-
-            const isBooked = bookings?.some((booking: any) => {
-                const bookingStart = new Date(booking.start_time);
-                return isSameDay(bookingStart, requestedDate) && bookingStart.getHours() === i;
-            });
-
-            if (!isBooked) {
-                slots.push(slot.toISOString());
-            }
-        }
-
-        return new Response(JSON.stringify({ slots }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 200,
+        const isBooked = (bookings ?? []).some((b) => {
+          const bStart = new Date(b.start_time).getTime();
+          const bEnd = new Date(b.end_time).getTime();
+          return bStart < slotEnd.getTime() && bEnd > slot.getTime();
         });
-    } catch (error: any) {
-        return new Response(JSON.stringify({ error: error.message }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 400,
-        });
+        if (!isBooked) slots.push(slot.toISOString());
+      }
     }
+
+    return jsonResponse({ slots: [...new Set(slots)].sort() });
+  } catch (error: any) {
+    return errorResponse(error.message ?? "Failed to fetch slots");
+  }
 });

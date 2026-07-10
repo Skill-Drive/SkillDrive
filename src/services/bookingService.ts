@@ -41,9 +41,9 @@ export const bookingService = {
     return data.profile;
   },
 
-  searchInstructors: async (filters: any = {}): Promise<any[]> => {
+  searchInstructors: async (filters: any = {}, postcode?: string): Promise<any[]> => {
     const { data, error } = await supabase.functions.invoke('search-instructors', {
-      body: { filters },
+      body: { filters, postcode },
     });
     if (error || !data) return [];
     return data.instructors;

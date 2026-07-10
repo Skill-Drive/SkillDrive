@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
+import { platformService } from '../services/platformService';
 import { Loader2, Car, User, GraduationCap } from 'lucide-react';
 
 export const Signup = () => {
@@ -32,7 +33,9 @@ export const Signup = () => {
       if (signUpError) throw signUpError;
 
       // Profile row is auto-created by the handle_new_user DB trigger.
-      navigate('/dashboard');
+      // Welcome email is fire-and-forget so signup never blocks on it.
+      platformService.sendWelcomeEmail();
+      navigate(role === 'instructor' ? '/instructor-onboarding' : '/dashboard');
     } catch (err: any) {
       setError(err.message || 'Failed to sign up');
     } finally {
