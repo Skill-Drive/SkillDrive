@@ -28,15 +28,6 @@ interface Instructor {
   suburbs_covered?: string[];
 }
 
-const MOCK_INSTRUCTORS: Instructor[] = [
-  { id: 'amelia', name: 'Amelia Tan', tagline: 'Calm coach. Test-route specialist.', location: 'Surry Hills, NSW', transmission: 'Auto', rating: 4.97, reviews: 412, price: 78, lessons: 1840, passRate: 94, next: 'Tomorrow · 7:00 am', tags: ['Test-route prep', 'Nervous drivers'], languages: ['English', 'Mandarin'], verified: true, avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=480&q=80' },
-  { id: 'marcus', name: 'Marcus Okafor', tagline: 'Manual specialist. Ex-rally driver.', location: 'Marrickville, NSW', transmission: 'Manual', rating: 4.91, reviews: 287, price: 85, lessons: 1210, passRate: 91, next: 'Today · 4:30 pm', tags: ['Manual', 'Highway'], languages: ['English'], verified: true, avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=480&q=80' },
-  { id: 'priya', name: 'Priya Anand', tagline: 'Test-day nerves? Specialty.', location: 'Parramatta, NSW', transmission: 'Auto', rating: 4.99, reviews: 524, price: 72, lessons: 2310, passRate: 96, next: 'Tomorrow · 9:00 am', tags: ['Test prep', 'First try'], languages: ['English', 'Hindi', 'Tamil'], verified: true, avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=480&q=80' },
-  { id: 'ben', name: 'Ben Whitlock', tagline: 'Highways, roundabouts, freeways.', location: 'Bondi Junction, NSW', transmission: 'Auto', rating: 4.88, reviews: 198, price: 82, lessons: 940, passRate: 89, next: 'Sat · 8:00 am', tags: ['Highway', 'Confidence'], languages: ['English'], verified: true, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=480&q=80' },
-  { id: 'sara', name: 'Sara Halim', tagline: 'Patient. Female-only learners welcome.', location: 'Auburn, NSW', transmission: 'Auto', rating: 4.95, reviews: 341, price: 70, lessons: 1560, passRate: 93, next: 'Mon · 10:00 am', tags: ['Beginner', 'Women-only available'], languages: ['English', 'Arabic'], verified: true, avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=480&q=80' },
-  { id: 'joel', name: 'Joel Park', tagline: 'Early-bird lessons before work.', location: 'Chatswood, NSW', transmission: 'Auto', rating: 4.93, reviews: 156, price: 92, lessons: 720, passRate: 90, next: 'Tomorrow · 6:00 am', tags: ['Early bird', 'EV'], languages: ['English', 'Korean'], verified: true, avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=480&q=80' },
-];
-
 function normalise(i: Instructor): Required<Pick<Instructor, 'name'|'avatar'|'transmission'|'rating'|'reviews'|'price'|'lessons'|'passRate'|'next'|'tags'|'languages'|'verified'|'location'|'tagline'>> {
   return {
     tagline: i.tagline || '',
@@ -78,7 +69,7 @@ export const SearchResults = () => {
       .catch(() => {});
   }, [filters.transmission, filters.maxPrice, filters.minRating, filters.dualControl, filters.hasTestPackage, postcode]);
 
-  const source = dbInstructors.length > 0 ? dbInstructors : MOCK_INSTRUCTORS;
+  const source = dbInstructors;
 
   const filtered = useMemo(() => {
     let r = source.filter(i => {
@@ -101,7 +92,7 @@ export const SearchResults = () => {
   })), [filtered]);
 
   return (
-    <div className="sd-screen" style={{ display: 'grid', gridTemplateColumns: '300px 1fr 1fr', height: 'calc(100vh - 72px)' }}>
+    <div className="sd-screen sd-grid-search">
       {/* Filters */}
       <aside style={{ borderRight: '1px solid var(--line)', padding: 24, overflowY: 'auto', background: 'var(--paper)' }}>
         <div className="sd-eyebrow" style={{ marginBottom: 8 }}>// Searching near</div>
@@ -187,6 +178,11 @@ export const SearchResults = () => {
         </div>
 
         <div className="sd-col sd-gap-3">
+          {filtered.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--ink-mute)' }}>
+              No instructors found matching your criteria.
+            </div>
+          )}
           {filtered.map((ins, idx) => {
             const n = normalise(ins);
             const id = ins.id;

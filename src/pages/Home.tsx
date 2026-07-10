@@ -1,12 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Icon, Logo } from '../components/Icon';
 
-const MOCK_INSTRUCTORS = [
-  { id: 'amelia', name: 'Amelia Tan', tagline: 'Calm coach. Test-route specialist.', location: 'Surry Hills', transmission: 'Auto', rating: 4.97, price: 78, next: 'Tomorrow · 7am', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=480&q=80' },
-  { id: 'marcus', name: 'Marcus Okafor', tagline: 'Manual specialist. Ex-rally driver.', location: 'Marrickville', transmission: 'Manual', rating: 4.91, price: 85, next: 'Today · 4:30pm', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=480&q=80' },
-  { id: 'priya', name: 'Priya Anand', tagline: 'Test-day nerves? Specialty.', location: 'Parramatta', transmission: 'Auto', rating: 4.99, price: 72, next: 'Tomorrow · 9am', avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=480&q=80' },
-];
+import { bookingService } from '../services/bookingService';
 
 const TESTIMONIALS = [
   { name: 'Liana, 17', from: 'Newtown', quote: 'Passed first try after 14 lessons with Amelia. The mock tests killed the nerves.' },
@@ -17,6 +13,17 @@ const TESTIMONIALS = [
 export const Home = () => {
   const [postcode, setPostcode] = useState('');
   const navigate = useNavigate();
+
+  const [topInstructors, setTopInstructors] = useState<any[]>([]);
+
+  useEffect(() => {
+    bookingService.searchInstructors({}, '')
+      .then(data => {
+        // Just grab top 3 for featured section
+        setTopInstructors((data || []).slice(0, 3));
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,7 +148,7 @@ export const Home = () => {
           </Link>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+        <div className="sd-grid-3">
           {[
             { n: '01', title: 'Search by postcode', body: 'Map view of every verified instructor within 10km. Filter for transmission, women-only, EV, early-bird, you name it.', icon: 'search' },
             { n: '02', title: 'Pick a slot, lock it in', body: 'Real-time calendar. Pay a $1 hold, settle the rest after your lesson. No deposit lost if life happens.', icon: 'calendar' },
@@ -173,36 +180,36 @@ export const Home = () => {
           <Link to="/search" className="sd-btn sd-btn-ghost sd-btn-sm" style={{ textDecoration: 'none' }}>See all 580 <Icon name="arrow" size={14}/></Link>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-          {MOCK_INSTRUCTORS.map(ins => (
+        <div className="sd-grid-3">
+          {topInstructors.map(ins => (
             <article key={ins.id} onClick={() => navigate(`/instructor/${ins.id}`)} className="sd-card" style={{ overflow: 'hidden', cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>
               <div style={{ position: 'relative', aspectRatio: '5/3', overflow: 'hidden' }}>
-                <img src={ins.avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={ins.name}/>
+                <img src={ins.avatar_url || ins.avatar || 'https://i.pravatar.cc/480'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={ins.name || ins.full_name}/>
                 <div style={{ position: 'absolute', top: 14, left: 14 }}>
-                  <span className="sd-chip sd-chip-ink">{ins.transmission}</span>
+                  <span className="sd-chip sd-chip-ink">{ins.transmission || (ins.vehicle && typeof ins.vehicle === 'object' ? ins.vehicle.transmission : 'Auto')}</span>
                 </div>
                 <div style={{ position: 'absolute', top: 14, right: 14 }}>
                   <span className="sd-chip" style={{ background: 'var(--surface)' }}>
-                    <Icon name="star" size={11} style={{ color: 'var(--signal-deep)' }}/> {ins.rating}
+                    <Icon name="star" size={11} style={{ color: 'var(--signal-deep)' }}/> {ins.rating || 4.9}
                   </span>
                 </div>
                 <div style={{ position: 'absolute', bottom: 14, left: 14, color: 'white', textShadow: '0 2px 12px rgba(0,0,0,.6)' }}>
-                  <div className="sd-display" style={{ fontSize: 32, lineHeight: 1 }}>{ins.name}</div>
+                  <div className="sd-display" style={{ fontSize: 32, lineHeight: 1 }}>{ins.name || ins.full_name}</div>
                   <div style={{ fontSize: 13, marginTop: 4, opacity: .9 }}>{ins.tagline}</div>
                 </div>
               </div>
               <div style={{ padding: 20 }}>
                 <div className="sd-row sd-between sd-acenter">
                   <div className="sd-row sd-acenter sd-gap-2 sd-muted" style={{ fontSize: 13 }}>
-                    <Icon name="pin" size={14}/> {ins.location}
+                    <Icon name="pin" size={14}/> {ins.location || (Array.isArray(ins.suburbs_covered) ? ins.suburbs_covered[0] : 'Sydney')}
                   </div>
                   <div className="sd-row sd-acenter sd-gap-1 sd-muted" style={{ fontSize: 13 }}>
-                    <Icon name="clock" size={14}/> {ins.next}
+                    <Icon name="clock" size={14}/> {ins.next || 'This week'}
                   </div>
                 </div>
                 <div className="sd-row sd-between sd-acenter" style={{ marginTop: 14, borderTop: '1px solid var(--line)', paddingTop: 14 }}>
                   <div>
-                    <span className="sd-display" style={{ fontSize: 28 }}>${ins.price}</span>
+                    <span className="sd-display" style={{ fontSize: 28 }}>${ins.price || ins.hourly_rate}</span>
                     <span className="sd-muted" style={{ fontSize: 13 }}> /hr</span>
                   </div>
                   <button className="sd-btn sd-btn-outline sd-btn-sm">View <Icon name="arrow" size={14}/></button>
@@ -216,7 +223,7 @@ export const Home = () => {
       {/* WHY US */}
       <section style={{ background: 'var(--ink)', color: 'var(--paper)', padding: '96px 0', marginTop: 60 }}>
         <div className="sd-container">
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 80, alignItems: 'start' }}>
+          <div className="sd-grid-2" style={{ alignItems: 'start' }}>
             <div>
               <div className="sd-eyebrow" style={{ color: 'var(--signal)', marginBottom: 14 }}>// Why SkillDrive</div>
               <h2 className="sd-display" style={{ fontSize: 88, margin: '0 0 28px', color: 'var(--paper)', lineHeight: 0.95 }}>
@@ -260,7 +267,7 @@ export const Home = () => {
       <section className="sd-container" style={{ padding: '96px 28px' }}>
         <div className="sd-eyebrow" style={{ marginBottom: 12 }}>// Pass stories</div>
         <h2 className="sd-display" style={{ fontSize: 56, margin: '0 0 40px' }}>People who <em>passed.</em></h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+        <div className="sd-grid-3">
           {TESTIMONIALS.map((t, i) => (
             <figure key={i} className="sd-card" style={{ padding: 28, margin: 0 }}>
               <div className="sd-row sd-between sd-acenter" style={{ marginBottom: 16 }}>

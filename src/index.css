@@ -163,3 +163,18 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .sd-soft   { color: var(--ink-soft); }
 .sd-ulink  { color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 1px; text-decoration: none; }
 .sd-ulink:hover { color: var(--cobalt); border-color: var(--cobalt); }
+
+/* ---------- responsive layout ---------- */
+.sd-grid-search { display: grid; grid-template-columns: 300px 1fr 1fr; height: calc(100vh - 72px); }
+.sd-grid-2 { display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; }
+.sd-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.sd-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+.sd-grid-1-4 { display: grid; grid-template-columns: 1fr 1.4fr; gap: 60px; }
+.sd-table-wrap { overflow-x: auto; width: 100%; }
+
+@media (max-width: 900px) {
+  .sd-grid-search { grid-template-columns: 1fr !important; height: auto !important; }
+  .sd-grid-search aside { max-height: 400px; overflow-y: auto; }
+  .sd-grid-search section:last-child { min-height: 400px; }
+  .sd-grid-2, .sd-grid-3, .sd-grid-4, .sd-grid-1-4 { grid-template-columns: 1fr !important; gap: 32px !important; }
+}

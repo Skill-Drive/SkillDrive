@@ -50,7 +50,7 @@ export const Teach = () => {
     <div className="sd-screen">
       {/* HERO */}
       <section style={{ background: 'var(--paper)', borderBottom: '1px solid var(--line)', position: 'relative', overflow: 'hidden' }}>
-        <div className="sd-container" style={{ padding: '80px 28px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 60, alignItems: 'center' }}>
+        <div className="sd-container sd-grid-2" style={{ padding: '80px 28px', alignItems: 'center' }}>
           <div>
             <div className="sd-eyebrow" style={{ marginBottom: 16 }}>// For instructors</div>
             <h1 className="sd-display" style={{ fontSize: 'clamp(64px, 8vw, 112px)', margin: 0, lineHeight: 0.92 }}>
@@ -112,7 +112,7 @@ export const Teach = () => {
       <section className="sd-container" style={{ padding: '96px 28px' }}>
         <div className="sd-eyebrow" style={{ marginBottom: 12 }}>// How we stack up</div>
         <h2 className="sd-display" style={{ fontSize: 64, margin: '0 0 40px', maxWidth: 760 }}>The honest <em>side-by-side.</em></h2>
-        <div className="sd-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="sd-card sd-table-wrap" style={{ padding: 0 }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--paper-2)' }}>
@@ -147,7 +147,7 @@ export const Teach = () => {
         <div className="sd-container">
           <div className="sd-eyebrow" style={{ color: 'var(--signal)', marginBottom: 12 }}>// Apply in 7 days, teach forever</div>
           <h2 className="sd-display" style={{ fontSize: 64, margin: '0 0 56px', color: 'var(--paper)' }}>How you join.</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 28 }}>
+          <div className="sd-grid-4">
             {[
               { n: '01', t: 'Apply online', d: 'Upload your driving instructor license, WWCC, and a 60-sec intro video. 15 minutes total.' },
               { n: '02', t: 'Verification call', d: '20-min video call with our team. We check your routes, your style, your vibe.' },
@@ -168,7 +168,7 @@ export const Teach = () => {
       <section className="sd-container" style={{ padding: '96px 28px' }}>
         <div className="sd-eyebrow" style={{ marginBottom: 12 }}>// From our instructors</div>
         <h2 className="sd-display" style={{ fontSize: 56, margin: '0 0 40px' }}>What it's <em>actually</em> like.</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+        <div className="sd-grid-3">
           {[
             { n: 'Amelia Tan', l: 'Surry Hills · 3 yrs on SkillDrive', q: 'I left a school in 2023 and doubled my take-home in a month. I pick my own students, my own hours. Game changer.', img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80' },
             { n: 'Marcus Okafor', l: 'Marrickville · 18 months', q: 'The no-show protection alone pays for the 15% fee. I used to lose $300 a week to flakes. Now I lose zero.', img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80' },
@@ -192,7 +192,7 @@ export const Teach = () => {
 
       {/* FAQ + APPLY */}
       <section className="sd-container" style={{ padding: '0 28px 96px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 60 }}>
+        <div className="sd-grid-1-4">
           <div>
             <div className="sd-eyebrow" style={{ marginBottom: 12 }}>// Frequently asked</div>
             <h2 className="sd-display" style={{ fontSize: 48, margin: 0 }}>The fine <em>print.</em></h2>
